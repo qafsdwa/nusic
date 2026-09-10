@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:muse_player/app/app.dart';
+import 'package:muse_player/widgets/navigation/desktop_navigation.dart';
+import 'package:muse_player/widgets/player/floating_player_bar.dart';
 
 void main() {
   testWidgets('Muse Player renders desktop shell', (WidgetTester tester) async {
@@ -13,7 +15,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('首页'), findsWidgets);
-    expect(find.byType(NavigationRail), findsOneWidget);
+    expect(find.byType(DesktopNavigationPanel), findsOneWidget);
+    expect(find.byType(FloatingPlayerBar), findsOneWidget);
     expect(find.byType(NavigationBar), findsNothing);
   });
 
@@ -28,5 +31,6 @@ void main() {
 
     expect(find.text('首页'), findsWidgets);
     expect(find.byType(NavigationBar), findsOneWidget);
+    expect(find.byType(FloatingPlayerBar), findsOneWidget);
   });
 }

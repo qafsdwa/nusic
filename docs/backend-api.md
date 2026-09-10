@@ -6,11 +6,11 @@
 
 ## 基本信息
 
-- Base URL：`http://127.0.0.1:8080`
+- Base URL：由 `assets/config/app_config.json` 的 `backend.baseUrl` 提供，默认 `http://127.0.0.1:8080`
 - 认证：待定（本地部署，Phase 2 可能为无鉴权或简单 token）
 - 编码：JSON，UTF-8
 
-对应客户端常量见 `lib/core/network/backend_config.dart`。
+对应客户端配置见 `assets/config/app_config.json` 的 `backend` 段；运行时通过 `appConfigProvider` 读取 `BackendConfig`。
 
 ## REST 端点
 
@@ -106,6 +106,7 @@ ws://127.0.0.1:8080/ws/player
 
 ## 客户端接入点
 
+- `BackendConfig`：从 `app_config.json` 读取 base URL 与端点路径。
 - `RustApiClient`：注入 REST（`dio` / `http`）与 WebSocket（`web_socket_channel`）客户端。
 - `PlayerNotifier`：接收 WS `state` 推送，`copyWith` 覆盖 `PlayerState`。
 - `CoverArtwork`：`cover` 为真实 URL 时渲染网络图，保留渐变占位作为 fallback。

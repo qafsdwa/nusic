@@ -1,27 +1,31 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../core/constants/app_section.dart';
-import '../pages/home_page.dart';
-import '../pages/library_page.dart';
-import '../pages/placeholder_page.dart';
-import '../pages/search_page.dart';
-import '../widgets/mini_player.dart';
-import '../widgets/navigation.dart';
+import '../core/config/app_config.dart';
+import '../core/config/app_config_provider.dart';
+import '../core/constants/app_sizes.dart';
+import '../pages/home/home_page.dart';
+import '../pages/library/library_page.dart';
+import '../pages/playlist/playlist_page.dart';
+import '../pages/search/search_page.dart';
+import '../providers/navigation_provider.dart';
+import '../widgets/common/placeholder_page.dart';
+import '../widgets/navigation/desktop_navigation.dart';
+import '../widgets/player/floating_player_bar.dart';
+import 'breakpoints.dart';
 import 'router.dart';
 import 'theme.dart';
 
 /// Root [MaterialApp] of Muse Player.
-///
-/// Wires the light/dark themes, system theme mode, the [MainShell] as home, and
-/// the named route table from [AppRoutes].
-class MuseApp extends StatelessWidget {
+class MuseApp extends ConsumerWidget {
   const MuseApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final AppConfig config = ref.watch(appConfigProvider);
+
     return MaterialApp(
-      title: 'Muse Player',
+      title: config.appName,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
@@ -34,34 +38,21 @@ class MuseApp extends StatelessWidget {
 
 /// Responsive application shell.
 ///
-/// - Desktop/tablet width >= 900: left NavigationRail + main content.
-/// - Mobile width < 900: main content + bottom Material NavigationBar.
-/// - A mini player is fixed at the very bottom on all form factors.
-class MainShell extends ConsumerStatefulWidget {
+/// The floating player bar is always rendered inside a [Stack] as a true
+/// floating surface — never as a footer or a `bottomNavigationBar`.
+class MainShell extends ConsumerWidget {
   const MainShell({super.key});
 
   @override
-  ConsumerState<MainShell> createState() => _MainShellState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final int selectedIndex = ref.watch(navigationProvider);
 
-class _MainShellState extends ConsumerState<MainShell> {
-  int _selectedIndex = AppSection.home.index;
-
-  void _onDestinationSelected(int index) {
-    if (index == _selectedIndex) {
-      return;
-    }
-    setState(() => _selectedIndex = index);
-  }
-
-  void _openSearch() {
-    _onDestinationSelected(AppSection.search.index);
-  }
-
-  @override
-  Widget build(BuildContext context) {
     final List<Widget> pages = <Widget>[
-      HomePage(onSearchTap: _openSearch),
+      HomePage(
+        onSearchTap: () {
+          ref.read(navigationProvider.notifier).select(1);
+        },
+      ),
       const SearchPage(),
       const LibraryPage(),
       const PlaceholderPage(
@@ -69,11 +60,7 @@ class _MainShellState extends ConsumerState<MainShell> {
         icon: Icons.favorite_outline,
         description: '收藏的歌曲和专辑将在这里显示，等待 Rust 后端接入。',
       ),
-      const PlaceholderPage(
-        title: '播放列表',
-        icon: Icons.queue_music_outlined,
-        description: '播放列表管理将在后续版本中开放。',
-      ),
+      const PlaylistPage(),
       const PlaceholderPage(
         title: '设置',
         icon: Icons.settings_outlined,
@@ -81,45 +68,94 @@ class _MainShellState extends ConsumerState<MainShell> {
       ),
     ];
 
+    final Widget content = IndexedStack(index: selectedIndex, children: pages);
+
     return Scaffold(
       body: LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
-          final bool useDesktopRail = constraints.maxWidth >= 900;
-          final Widget content = IndexedStack(
-            index: _selectedIndex,
-            children: pages,
+          final AppBreakpoint breakpoint = AppBreakpoints.fromWidth(
+            constraints.maxWidth,
           );
 
-          if (useDesktopRail) {
-            return Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+          return switch (breakpoint) {
+            AppBreakpoint.desktop => Stack(
               children: <Widget>[
-                AppNavigationRail(
-                  selectedIndex: _selectedIndex,
-                  onDestinationSelected: _onDestinationSelected,
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    DesktopNavigationPanel(
+                      selectedIndex: selectedIndex,
+                      onDestinationSelected: (int index) {
+                        ref.read(navigationProvider.notifier).select(index);
+                      },
+                    ),
+                    VerticalDivider(
+                      width: 1,
+                      thickness: 1,
+                      color: Theme.of(context).colorScheme.outlineVariant,
+                    ),
+                    Expanded(child: content),
+                  ],
                 ),
-                VerticalDivider(
-                  width: 1,
-                  thickness: 1,
-                  color: Theme.of(context).colorScheme.outlineVariant,
+                const Positioned(
+                  left: AppSizes.floatingPlayerBarHorizontalMargin,
+                  right: AppSizes.floatingPlayerBarHorizontalMargin,
+                  bottom: AppSizes.floatingPlayerBarBottom,
+                  child: FloatingPlayerBar(),
                 ),
-                Expanded(child: content),
               ],
-            );
-          }
-
-          return Column(
-            children: <Widget>[
-              Expanded(child: content),
-              AppBottomNavigationBar(
-                selectedIndex: _selectedIndex,
-                onDestinationSelected: _onDestinationSelected,
-              ),
-            ],
-          );
+            ),
+            AppBreakpoint.tablet => Stack(
+              children: <Widget>[
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    MuseNavigationRail(
+                      selectedIndex: selectedIndex,
+                      onDestinationSelected: (int index) {
+                        ref.read(navigationProvider.notifier).select(index);
+                      },
+                    ),
+                    VerticalDivider(
+                      width: 1,
+                      thickness: 1,
+                      color: Theme.of(context).colorScheme.outlineVariant,
+                    ),
+                    Expanded(child: content),
+                  ],
+                ),
+                const Positioned(
+                  left: AppSizes.floatingPlayerBarHorizontalMargin,
+                  right: AppSizes.floatingPlayerBarHorizontalMargin,
+                  bottom: AppSizes.floatingPlayerBarBottom,
+                  child: FloatingPlayerBar(),
+                ),
+              ],
+            ),
+            AppBreakpoint.mobile => Stack(
+              children: <Widget>[
+                Column(
+                  children: <Widget>[
+                    Expanded(child: content),
+                    MuseBottomNavigationBar(
+                      selectedIndex: selectedIndex,
+                      onDestinationSelected: (int index) {
+                        ref.read(navigationProvider.notifier).select(index);
+                      },
+                    ),
+                  ],
+                ),
+                const Positioned(
+                  left: AppSizes.floatingPlayerBarHorizontalMargin,
+                  right: AppSizes.floatingPlayerBarHorizontalMargin,
+                  bottom: AppSizes.floatingPlayerBarMobileBottom,
+                  child: FloatingPlayerBar(),
+                ),
+              ],
+            ),
+          };
         },
       ),
-      bottomNavigationBar: const MiniPlayer(),
     );
   }
 }

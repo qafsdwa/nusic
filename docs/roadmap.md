@@ -4,10 +4,12 @@
 
 - [x] Flutter 工程与分层目录
 - [x] Material 3 明暗主题
-- [x] 响应式外壳（NavigationRail / NavigationBar + MiniPlayer）
+- [x] 响应式外壳（Desktop Panel / NavigationRail / NavigationBar）
+- [x] Floating Liquid Glass Player Bar
 - [x] Riverpod 播放状态与模拟队列
-- [x] 首页 / 搜索 / 音乐库 / 正在播放 / 占位页
+- [x] 首页 / 搜索 / 音乐库 / 播放列表 / 正在播放
 - [x] 渐变占位封面
+- [x] JSON 配置系统与启动初始化
 - [x] 后端地址与 API 客户端接缝预留
 
 ## Phase 2 — 真实音频播放
@@ -38,4 +40,4 @@
 
 - 模型层已为后端字段预留映射（`Song.cover`、`duration` 等）。
 - `PlayerState` 与音频引擎解耦，Phase 2 无需改 UI。
-- 接口契约见 [backend-api.md](backend-api.md)。
+- 配置系统见 [configuration.md](configuration.md)。

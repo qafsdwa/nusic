@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../pages/now_playing_page.dart';
-import '../pages/search_page.dart';
+import '../pages/now_playing/now_playing_page.dart';
+import '../pages/search/search_page.dart';
 
 /// Central route table for Phase 1.
 ///
@@ -19,13 +19,6 @@ abstract final class AppRoutes {
         return MaterialPageRoute<void>(
           settings: settings,
           builder: (BuildContext context) => const _SearchRoutePage(),
-        );
-      case AppRoutes.library:
-        return MaterialPageRoute<void>(
-          settings: settings,
-          builder: (BuildContext context) => const Scaffold(
-            body: Center(child: Text('Library placeholder route')),
-          ),
         );
       case AppRoutes.nowPlaying:
         return MaterialPageRoute<void>(

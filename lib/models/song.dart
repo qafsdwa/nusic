@@ -20,8 +20,8 @@ class Song {
 
   /// Asset path or remote URL for the cover art.
   ///
-  /// Mock items may use an empty value and are rendered as generated
-  /// placeholder artwork by [CoverArtwork].
+  /// Mock items use a `mock://` key and are rendered as generated placeholder
+  /// artwork by [CoverArtwork].
   final String cover;
   final Duration duration;
 
