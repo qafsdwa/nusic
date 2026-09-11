@@ -58,10 +58,11 @@ runApp(
 ```
 
 Configuration includes app name, environment, mock/network flags, Rust backend
-endpoints and initial player defaults. The loader falls back to `AppConfig.fallback`
+endpoints, initial player defaults and the Material 3 theme palette / theme mode. The loader falls back to `AppConfig.fallback`
 if the asset is missing or malformed, so tests and local runs still work.
 
 See [docs/configuration.md](docs/configuration.md) for all fields.
+The Settings page also offers a runtime theme-mode toggle (`system` / `light` / `dark`).
 
 ## Run
 

@@ -1,96 +1,60 @@
 import 'package:flutter/material.dart';
 
+import '../core/config/theme_config.dart';
 import '../core/constants/app_sizes.dart';
 
-/// Theme colors matching the requested Material You palette.
-abstract final class AppColors {
-  static const Color lightPrimary = Color(0xFF1A73E8);
-  static const Color lightPrimaryContainer = Color(0xFFD2E3FC);
-  static const Color lightBackground = Color(0xFFF8F9FA);
-  static const Color lightSurface = Color(0xFFFFFFFF);
-  static const Color lightSurfaceVariant = Color(0xFFF1F3F4);
-  static const Color lightTextPrimary = Color(0xFF202124);
-  static const Color lightTextSecondary = Color(0xFF5F6368);
-  static const Color lightDivider = Color(0xFFDADCE0);
-
-  static const Color darkPrimary = Color(0xFF8AB4F8);
-  static const Color darkPrimaryContainer = Color(0xFF174EA6);
-  static const Color darkBackground = Color(0xFF202124);
-  static const Color darkSurface = Color(0xFF292A2D);
-  static const Color darkSurfaceVariant = Color(0xFF303134);
-  static const Color darkTextPrimary = Color(0xFFE8EAED);
-  static const Color darkTextSecondary = Color(0xFFBDC1C6);
-  static const Color darkDivider = Color(0xFF3C4043);
-}
-
-/// Builds the light and dark [ThemeData] used by [MaterialApp].
+/// Builds Material 3 light / dark [ThemeData] from a [ThemePalette].
 ///
-/// Both themes are generated from a Material 3 seed color and then overridden
-/// with the exact [AppColors] values so the UI matches the requested Material
-/// You palette regardless of seed-derived tones.
+/// No colors are hardcoded here. Phase 1 defaults live in
+/// [ThemePalette.lightFallback] / [ThemePalette.darkFallback] and are only used
+/// when the JSON asset is missing or malformed.
 abstract final class AppTheme {
-  static ThemeData light() {
-    final ColorScheme colorScheme =
-        ColorScheme.fromSeed(
-          seedColor: AppColors.lightPrimary,
-          brightness: Brightness.light,
-        ).copyWith(
-          primary: AppColors.lightPrimary,
-          onPrimary: Colors.white,
-          primaryContainer: AppColors.lightPrimaryContainer,
-          onPrimaryContainer: AppColors.lightTextPrimary,
-          surface: AppColors.lightSurface,
-          onSurface: AppColors.lightTextPrimary,
-          surfaceContainerHighest: AppColors.lightSurfaceVariant,
-          surfaceContainerHigh: AppColors.lightSurfaceVariant,
-          onSurfaceVariant: AppColors.lightTextSecondary,
-          outline: AppColors.lightDivider,
-          outlineVariant: AppColors.lightDivider,
-        );
-
-    return _base(
-      brightness: Brightness.light,
-      colorScheme: colorScheme,
-      scaffoldBackgroundColor: AppColors.lightBackground,
-    );
+  /// Light theme built from the configured light palette.
+  static ThemeData light(ThemePalette palette) {
+    return _build(brightness: Brightness.light, palette: palette);
   }
 
-  static ThemeData dark() {
-    final ColorScheme colorScheme =
-        ColorScheme.fromSeed(
-          seedColor: AppColors.darkPrimary,
-          brightness: Brightness.dark,
-        ).copyWith(
-          primary: AppColors.darkPrimary,
-          onPrimary: AppColors.darkBackground,
-          primaryContainer: AppColors.darkPrimaryContainer,
-          onPrimaryContainer: AppColors.darkTextPrimary,
-          surface: AppColors.darkSurface,
-          onSurface: AppColors.darkTextPrimary,
-          surfaceContainerHighest: AppColors.darkSurfaceVariant,
-          surfaceContainerHigh: AppColors.darkSurfaceVariant,
-          onSurfaceVariant: AppColors.darkTextSecondary,
-          outline: AppColors.darkDivider,
-          outlineVariant: AppColors.darkDivider,
-        );
-
-    return _base(
-      brightness: Brightness.dark,
-      colorScheme: colorScheme,
-      scaffoldBackgroundColor: AppColors.darkBackground,
-    );
+  /// Dark theme built from the configured dark palette.
+  static ThemeData dark(ThemePalette palette) {
+    return _build(brightness: Brightness.dark, palette: palette);
   }
 
-  static ThemeData _base({
+  /// Maps the JSON `theme.mode` string to a Flutter [ThemeMode].
+  static ThemeMode resolveThemeMode(String mode) {
+    return switch (mode.toLowerCase()) {
+      'light' => ThemeMode.light,
+      'dark' => ThemeMode.dark,
+      _ => ThemeMode.system,
+    };
+  }
+
+  static ThemeData _build({
     required Brightness brightness,
-    required ColorScheme colorScheme,
-    required Color scaffoldBackgroundColor,
+    required ThemePalette palette,
   }) {
+    final ColorScheme colorScheme =
+        ColorScheme.fromSeed(
+          seedColor: palette.primary,
+          brightness: brightness,
+        ).copyWith(
+          primary: palette.primary,
+          onPrimary: palette.onPrimary,
+          primaryContainer: palette.primaryContainer,
+          onPrimaryContainer: palette.onPrimaryContainer,
+          surface: palette.surface,
+          onSurface: palette.textPrimary,
+          surfaceContainerHighest: palette.surfaceVariant,
+          surfaceContainerHigh: palette.surfaceVariant,
+          onSurfaceVariant: palette.textSecondary,
+          outline: palette.divider,
+          outlineVariant: palette.divider,
+        );
+
     return ThemeData(
       useMaterial3: true,
       brightness: brightness,
       colorScheme: colorScheme,
-      scaffoldBackgroundColor: scaffoldBackgroundColor,
+      scaffoldBackgroundColor: palette.background,
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
@@ -99,34 +63,32 @@ abstract final class AppTheme {
       ),
       cardTheme: CardThemeData(
         elevation: 0,
-        color: colorScheme.surface,
+        color: palette.surface,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
       navigationRailTheme: NavigationRailThemeData(
         backgroundColor: Colors.transparent,
-        indicatorColor: colorScheme.primaryContainer,
-        selectedIconTheme: IconThemeData(color: colorScheme.primary),
+        indicatorColor: palette.primaryContainer,
+        selectedIconTheme: IconThemeData(color: palette.primary),
         selectedLabelTextStyle: TextStyle(
-          color: colorScheme.primary,
+          color: palette.primary,
           fontWeight: FontWeight.w600,
         ),
-        unselectedIconTheme: IconThemeData(color: colorScheme.onSurfaceVariant),
-        unselectedLabelTextStyle: TextStyle(
-          color: colorScheme.onSurfaceVariant,
-        ),
+        unselectedIconTheme: IconThemeData(color: palette.textSecondary),
+        unselectedLabelTextStyle: TextStyle(color: palette.textSecondary),
       ),
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: colorScheme.surface,
-        indicatorColor: colorScheme.primaryContainer,
+        backgroundColor: palette.surface,
+        indicatorColor: palette.primaryContainer,
         elevation: 0,
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: colorScheme.surfaceContainerHighest,
-        hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
-        prefixIconColor: colorScheme.onSurfaceVariant,
-        suffixIconColor: colorScheme.onSurfaceVariant,
+        fillColor: palette.surfaceVariant,
+        hintStyle: TextStyle(color: palette.textSecondary),
+        prefixIconColor: palette.textSecondary,
+        suffixIconColor: palette.textSecondary,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: AppSizes.spacingMd,
           vertical: 12,
@@ -138,15 +100,15 @@ abstract final class AppTheme {
       ),
       sliderTheme: SliderThemeData(
         trackHeight: 2,
-        activeTrackColor: colorScheme.primary,
-        inactiveTrackColor: colorScheme.outlineVariant,
-        thumbColor: colorScheme.primary,
+        activeTrackColor: palette.primary,
+        inactiveTrackColor: palette.divider,
+        thumbColor: palette.primary,
         thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5),
         overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
-        overlayColor: colorScheme.primary.withValues(alpha: 0.12),
+        overlayColor: palette.primary.withValues(alpha: 0.12),
       ),
       dividerTheme: DividerThemeData(
-        color: colorScheme.outlineVariant,
+        color: palette.divider,
         thickness: 1,
         space: 1,
       ),

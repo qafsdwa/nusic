@@ -41,13 +41,14 @@ lib/
 ├── mock/                      # Phase 1 Mock 数据
 │   └── mock_music.dart
 ├── models/                    # 领域模型（Song、Album、Playlist）
-├── providers/                 # Riverpod 状态（Player、Navigation）
+├── providers/                 # Riverpod 状态（Player、Navigation、ThemeMode）
 ├── pages/                     # 页面级组件
 │   ├── home/
 │   ├── library/
 │   ├── now_playing/
 │   ├── playlist/
-│   └── search/
+│   ├── search/
+│   └── settings/
 └── widgets/                   # 可复用组件
     ├── album/
     ├── common/
@@ -140,12 +141,17 @@ Floating Player Bar 始终位于 `Stack` 中，并使用
 
 ## 主题系统
 
-`AppTheme` 提供 `light()` / `dark()` 两套 `ThemeData`：
+`AppTheme` 提供 `light(ThemePalette)` / `dark(ThemePalette)` 两套 `ThemeData`：
 
-- 使用 `ColorScheme.fromSeed(seedColor: ...)` 生成 Material 3 配色，
-  再覆盖 `primary` / `primaryContainer` / `surface` / `onSurface` 等对齐设计稿色值。
-- 明暗色板定义在 `AppColors` 中，统一为单一真值来源。
-- `MaterialApp.themeMode = ThemeMode.system`，跟随系统明暗。
+- 明暗色板定义在 `assets/config/app_config.json` 的 `theme` 段，支持
+  `mode` / `light` / `dark`。
+- `ThemeConfig` / `ThemePalette` 负责解析十六进制颜色，小写文件名见
+  `lib/core/config/theme_config.dart`。
+- `ColorScheme.fromSeed(...).copyWith(...)` 使用配置中的
+  `primary` / `primaryContainer` / `surface` / `onSurface` 等精确色值。
+- `MaterialApp.themeMode` 默认来自 `config.theme.mode`，并通过
+  `themeModeProvider` 支持设置页运行时切换。
+- Phase 1 默认色板仅作为 JSON 缺失或解析失败时的 fallback。
 - 仅 Floating Player Bar 使用 `GlassContainer + BackdropFilter`，
   普通列表和卡片保持普通 Surface，避免不必要的 GPU 开销。
 

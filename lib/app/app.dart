@@ -8,7 +8,9 @@ import '../pages/home/home_page.dart';
 import '../pages/library/library_page.dart';
 import '../pages/playlist/playlist_page.dart';
 import '../pages/search/search_page.dart';
+import '../pages/settings/settings_page.dart';
 import '../providers/navigation_provider.dart';
+import '../providers/theme_mode_provider.dart';
 import '../widgets/common/placeholder_page.dart';
 import '../widgets/navigation/desktop_navigation.dart';
 import '../widgets/player/floating_player_bar.dart';
@@ -23,13 +25,14 @@ class MuseApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final AppConfig config = ref.watch(appConfigProvider);
+    final ThemeMode themeMode = ref.watch(themeModeProvider);
 
     return MaterialApp(
       title: config.appName,
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.light(),
-      darkTheme: AppTheme.dark(),
-      themeMode: ThemeMode.system,
+      theme: AppTheme.light(config.theme.light),
+      darkTheme: AppTheme.dark(config.theme.dark),
+      themeMode: themeMode,
       home: const MainShell(),
       onGenerateRoute: AppRoutes.onGenerateRoute,
     );
@@ -61,11 +64,7 @@ class MainShell extends ConsumerWidget {
         description: '收藏的歌曲和专辑将在这里显示，等待 Rust 后端接入。',
       ),
       const PlaylistPage(),
-      const PlaceholderPage(
-        title: '设置',
-        icon: Icons.settings_outlined,
-        description: '音频输出、外观与同步设置将在后续版本中开放。',
-      ),
+      const SettingsPage(),
     ];
 
     final Widget content = IndexedStack(index: selectedIndex, children: pages);

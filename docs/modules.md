@@ -10,13 +10,14 @@
 | `app/app.dart` | `MuseApp`（读取 `appName` 的 MaterialApp 根组件）与 `MainShell`（响应式外壳） |
 | `app/breakpoints.dart` | `AppBreakpoint` 与 `AppBreakpoints`：Mobile `<700` / Tablet `700~1100` / Desktop `>1100` |
 | `app/router.dart` | `AppRoutes` 命名路由表（`/search`、`/now-playing` 等），支持深链与后续后端驱动导航 |
-| `app/theme.dart` | `AppColors` 色板 + `AppTheme.light()/dark()` 明暗主题 |
+| `app/theme.dart` | `AppTheme.light(ThemePalette)` / `dark(ThemePalette)`：从配置色板构建 Material 3 主题，并提供 `resolveThemeMode` |
 
 ## core/config/ — 配置系统
 
 | 文件 | 职责 |
 | --- | --- |
 | `app_config.dart` | `AppConfig` / `PlayerConfig`：配置模型、`fromJson` / `toJson`、fallback |
+| `theme_config.dart` | `ThemeConfig` / `ThemePalette`：主题模式与明暗色板、hex 颜色解析 |
 | `app_config_loader.dart` | `AppConfigLoader`：从 `assets/config/app_config.json` 加载配置；异常时回退 |
 | `app_config_provider.dart` | `appConfigProvider`：全局配置 Riverpod Provider |
 | `app_bootstrap.dart` | `initializeApp()`：初始化 Flutter 绑定并加载启动配置 |
@@ -71,6 +72,7 @@
 | --- | --- |
 | `player_provider.dart` | `PlayerStatus`、`RepeatMode`、`PlayerState`、`PlayerNotifier` 与 `playerProvider`；初始值来自 `AppConfig` |
 | `navigation_provider.dart` | `NavigationNotifier` 与 `navigationProvider`：当前 Shell 导航索引 |
+| `theme_mode_provider.dart` | `ThemeModeNotifier` 与 `themeModeProvider`：运行时主题模式，初始值来自 `AppConfig.theme.mode` |
 
 `PlayerNotifier` 暴露：`play` / `togglePlayPause` / `next` / `previous` /
 `seek` / `setVolume` / `toggleShuffle` / `cycleRepeatMode` / `pause`。
@@ -87,6 +89,7 @@
 | `playlist/playlist_page.dart` | 歌单详情：封面、名称、播放全部、曲目列表 |
 | `now_playing/now_playing_page.dart` | Now Playing 入口与响应式布局选择 |
 | `now_playing/now_playing_widgets.dart` | 桌面 / 移动布局、传输控制、Mock 歌词面板 |
+| `settings/settings_page.dart` | 设置页：主题模式切换按钮与关于信息 |
 
 ## widgets/ — 可复用组件
 

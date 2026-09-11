@@ -1,0 +1,45 @@
+{
+  "appName": "Muse Player",
+  "environment": "development",
+  "enableMockData": true,
+  "enableNetwork": false,
+  "backend": {
+    "baseUrl": "http://127.0.0.1:8080",
+    "songsSearchPath": "/songs/search",
+    "songPath": "/songs",
+    "playlistPath": "/playlist",
+    "playerWebSocketPath": "/ws/player"
+  },
+  "player": {
+    "initialVolume": 0.7,
+    "defaultShuffle": false,
+    "defaultRepeatMode": "off"
+  },
+  "theme": {
+    "mode": "system",
+    "light": {
+      "primary": "#1A73E8",
+      "onPrimary": "#FFFFFF",
+      "primaryContainer": "#D2E3FC",
+      "onPrimaryContainer": "#202124",
+      "background": "#F8F9FA",
+      "surface": "#FFFFFF",
+      "surfaceVariant": "#F1F3F4",
+      "textPrimary": "#202124",
+      "textSecondary": "#5F6368",
+      "divider": "#DADCE0"
+    },
+    "dark": {
+      "primary": "#8AB4F8",
+      "onPrimary": "#202124",
+      "primaryContainer": "#174EA6",
+      "onPrimaryContainer": "#E8EAED",
+      "background": "#202124",
+      "surface": "#292A2D",
+      "surfaceVariant": "#303134",
+      "textPrimary": "#E8EAED",
+      "textSecondary": "#BDC1C6",
+      "divider": "#3C4043"
+    }
+  }
+}
