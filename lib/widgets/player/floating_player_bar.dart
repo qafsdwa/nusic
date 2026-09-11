@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/breakpoints.dart';
 import '../../app/router.dart';
+import '../../core/config/app_config.dart';
+import '../../core/config/app_config_provider.dart';
+import '../../core/config/glass_config.dart';
 import '../../core/constants/app_sizes.dart';
 import '../../models/song.dart';
 import '../../providers/player_provider.dart';
@@ -21,6 +24,7 @@ class FloatingPlayerBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ThemeData theme = Theme.of(context);
+    final AppConfig config = ref.watch(appConfigProvider);
     final PlayerState state = ref.watch(playerProvider);
     final Song? song = state.currentSong;
 
@@ -30,55 +34,46 @@ class FloatingPlayerBar extends ConsumerWidget {
 
     final Brightness brightness = theme.brightness;
     final bool isDark = brightness == Brightness.dark;
+    final GlassConfig glass = config.theme.glass;
+    final GlassPalette palette = isDark ? glass.dark : glass.light;
+
     final List<BoxShadow> shadow = <BoxShadow>[
       BoxShadow(
-        color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.08),
-        blurRadius: 28,
-        spreadRadius: 1,
-        offset: const Offset(0, 8),
+        color: palette.shadowColor,
+        blurRadius: glass.shadowBlurRadius,
+        spreadRadius: glass.shadowSpreadRadius,
+        offset: Offset(0, glass.shadowOffsetY),
       ),
     ];
 
     final LinearGradient glassGradient = LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
-      colors: isDark
-          ? <Color>[
-              const Color(0xFF2A2B2F).withValues(alpha: 0.78),
-              const Color(0xFF1F2023).withValues(alpha: 0.66),
-            ]
-          : <Color>[
-              Colors.white.withValues(alpha: 0.76),
-              Colors.white.withValues(alpha: 0.56),
-            ],
+      colors: <Color>[palette.surfaceStartColor, palette.surfaceEndColor],
     );
 
     final LinearGradient glassBorderGradient = LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
-      colors: isDark
-          ? <Color>[
-              Colors.white.withValues(alpha: 0.22),
-              Colors.white.withValues(alpha: 0.04),
-              Colors.white.withValues(alpha: 0.10),
-            ]
-          : <Color>[
-              Colors.white.withValues(alpha: 0.92),
-              Colors.white.withValues(alpha: 0.30),
-              Colors.white.withValues(alpha: 0.70),
-            ],
+      colors: <Color>[
+        palette.borderStartColor,
+        palette.borderMiddleColor,
+        palette.borderEndColor,
+      ],
     );
 
     return SizedBox(
       height: AppSizes.floatingPlayerBarHeight,
       child: GlassContainer(
         borderRadius: AppSizes.floatingPlayerBarRadius,
-        blur: 24,
-        opacity: isDark ? 0.72 : 0.68,
+        blur: glass.blur,
+        borderWidth: glass.borderWidth,
         shadow: shadow,
         gradient: glassGradient,
         borderGradient: glassBorderGradient,
         highlight: true,
+        highlightColor: palette.highlight,
+        highlightOpacity: palette.highlightOpacity,
         child: Material(
           type: MaterialType.transparency,
           child: InkWell(

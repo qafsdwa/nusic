@@ -21,6 +21,7 @@ class GlassContainer extends StatelessWidget {
     required this.child,
     this.borderRadius = AppSizes.floatingPlayerBarRadius,
     this.blur = 22,
+    this.borderWidth = 1,
     this.opacity = 0.68,
     this.padding,
     this.color,
@@ -30,11 +31,13 @@ class GlassContainer extends StatelessWidget {
     this.borderGradient,
     this.highlight = false,
     this.highlightColor,
+    this.highlightOpacity,
   });
 
   final Widget child;
   final double borderRadius;
   final double blur;
+  final double borderWidth;
   final double opacity;
   final EdgeInsetsGeometry? padding;
   final Color? color;
@@ -44,6 +47,7 @@ class GlassContainer extends StatelessWidget {
   final Gradient? borderGradient;
   final bool highlight;
   final Color? highlightColor;
+  final double? highlightOpacity;
 
   @override
   Widget build(BuildContext context) {
@@ -58,10 +62,12 @@ class GlassContainer extends StatelessWidget {
           color: isDark
               ? Colors.white.withValues(alpha: 0.08)
               : Colors.white.withValues(alpha: 0.65),
-          width: 1,
+          width: borderWidth,
         );
     final BorderRadius radius = BorderRadius.circular(borderRadius);
     final Color sheenColor = highlightColor ?? Colors.white;
+    final double resolvedHighlightOpacity =
+        highlightOpacity ?? (isDark ? 0.10 : 0.32);
 
     return Container(
       decoration: BoxDecoration(borderRadius: radius, boxShadow: shadow),
@@ -91,9 +97,11 @@ class GlassContainer extends StatelessWidget {
                             end: Alignment.bottomRight,
                             colors: <Color>[
                               sheenColor.withValues(
-                                alpha: isDark ? 0.10 : 0.32,
+                                alpha: resolvedHighlightOpacity,
                               ),
-                              sheenColor.withValues(alpha: 0.02),
+                              sheenColor.withValues(
+                                alpha: resolvedHighlightOpacity * 0.06,
+                              ),
                               Colors.transparent,
                             ],
                             stops: const <double>[0.0, 0.28, 1.0],
@@ -110,6 +118,7 @@ class GlassContainer extends StatelessWidget {
                         painter: _GradientBorderPainter(
                           borderRadius: radius,
                           gradient: borderGradient!,
+                          borderWidth: borderWidth,
                         ),
                       ),
                     ),
@@ -128,17 +137,19 @@ class _GradientBorderPainter extends CustomPainter {
   const _GradientBorderPainter({
     required this.borderRadius,
     required this.gradient,
+    required this.borderWidth,
   });
 
   final BorderRadius borderRadius;
   final Gradient gradient;
+  final double borderWidth;
 
   @override
   void paint(Canvas canvas, Size size) {
     final Rect rect = Offset.zero & size;
     final Paint paint = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1
+      ..strokeWidth = borderWidth
       ..shader = gradient.createShader(rect);
 
     canvas.drawRRect(borderRadius.toRRect(rect).deflate(0.5), paint);
@@ -147,6 +158,7 @@ class _GradientBorderPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _GradientBorderPainter oldDelegate) {
     return oldDelegate.gradient != gradient ||
-        oldDelegate.borderRadius != borderRadius;
+        oldDelegate.borderRadius != borderRadius ||
+        oldDelegate.borderWidth != borderWidth;
   }
 }

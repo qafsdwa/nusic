@@ -1,15 +1,20 @@
 import 'dart:ui' show Color;
 
+import 'config_color.dart';
+import 'glass_config.dart';
+
 /// Theme configuration loaded from `assets/config/app_config.json`.
 ///
-/// Keeping the palette in JSON lets the Material 3 theme be adjusted without
-/// editing Dart source. [AppConfig.fallback] still contains the Phase 1 default
-/// values so tests and cold starts are deterministic.
+/// Keeping the palette in JSON lets the Material 3 theme and the floating
+/// player bar glass be adjusted without editing Dart source.
+/// [ThemeConfig.fallback] still contains the Phase 1 defaults so tests and
+/// cold starts are deterministic.
 class ThemeConfig {
   const ThemeConfig({
     required this.mode,
     required this.light,
     required this.dark,
+    required this.glass,
   });
 
   /// One of `system`, `light`, `dark`.
@@ -17,16 +22,19 @@ class ThemeConfig {
 
   final ThemePalette light;
   final ThemePalette dark;
+  final GlassConfig glass;
 
   static const ThemeConfig fallback = ThemeConfig(
     mode: 'system',
     light: ThemePalette.lightFallback,
     dark: ThemePalette.darkFallback,
+    glass: GlassConfig.fallback,
   );
 
   factory ThemeConfig.fromJson(Map<String, dynamic> json) {
     final Object? lightJson = json['light'];
     final Object? darkJson = json['dark'];
+    final Object? glassJson = json['glass'];
 
     return ThemeConfig(
       mode: json['mode'] as String? ?? fallback.mode,
@@ -39,6 +47,9 @@ class ThemeConfig {
       dark: darkJson is Map<String, dynamic>
           ? ThemePalette.fromJson(darkJson, fallback: ThemePalette.darkFallback)
           : fallback.dark,
+      glass: glassJson is Map<String, dynamic>
+          ? GlassConfig.fromJson(glassJson)
+          : fallback.glass,
     );
   }
 
@@ -47,6 +58,7 @@ class ThemeConfig {
       'mode': mode,
       'light': light.toJson(),
       'dark': dark.toJson(),
+      'glass': glass.toJson(),
     };
   }
 }
@@ -108,66 +120,43 @@ class ThemePalette {
     required ThemePalette fallback,
   }) {
     return ThemePalette(
-      primary: _parseColor(json['primary'], fallback.primary),
-      onPrimary: _parseColor(json['onPrimary'], fallback.onPrimary),
-      primaryContainer: _parseColor(
+      primary: parseConfigColor(json['primary'], fallback.primary),
+      onPrimary: parseConfigColor(json['onPrimary'], fallback.onPrimary),
+      primaryContainer: parseConfigColor(
         json['primaryContainer'],
         fallback.primaryContainer,
       ),
-      onPrimaryContainer: _parseColor(
+      onPrimaryContainer: parseConfigColor(
         json['onPrimaryContainer'],
         fallback.onPrimaryContainer,
       ),
-      background: _parseColor(json['background'], fallback.background),
-      surface: _parseColor(json['surface'], fallback.surface),
-      surfaceVariant: _parseColor(
+      background: parseConfigColor(json['background'], fallback.background),
+      surface: parseConfigColor(json['surface'], fallback.surface),
+      surfaceVariant: parseConfigColor(
         json['surfaceVariant'],
         fallback.surfaceVariant,
       ),
-      textPrimary: _parseColor(json['textPrimary'], fallback.textPrimary),
-      textSecondary: _parseColor(json['textSecondary'], fallback.textSecondary),
-      divider: _parseColor(json['divider'], fallback.divider),
+      textPrimary: parseConfigColor(json['textPrimary'], fallback.textPrimary),
+      textSecondary: parseConfigColor(
+        json['textSecondary'],
+        fallback.textSecondary,
+      ),
+      divider: parseConfigColor(json['divider'], fallback.divider),
     );
   }
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
-      'primary': _colorToHex(primary),
-      'onPrimary': _colorToHex(onPrimary),
-      'primaryContainer': _colorToHex(primaryContainer),
-      'onPrimaryContainer': _colorToHex(onPrimaryContainer),
-      'background': _colorToHex(background),
-      'surface': _colorToHex(surface),
-      'surfaceVariant': _colorToHex(surfaceVariant),
-      'textPrimary': _colorToHex(textPrimary),
-      'textSecondary': _colorToHex(textSecondary),
-      'divider': _colorToHex(divider),
+      'primary': configColorToHex(primary),
+      'onPrimary': configColorToHex(onPrimary),
+      'primaryContainer': configColorToHex(primaryContainer),
+      'onPrimaryContainer': configColorToHex(onPrimaryContainer),
+      'background': configColorToHex(background),
+      'surface': configColorToHex(surface),
+      'surfaceVariant': configColorToHex(surfaceVariant),
+      'textPrimary': configColorToHex(textPrimary),
+      'textSecondary': configColorToHex(textSecondary),
+      'divider': configColorToHex(divider),
     };
-  }
-
-  static Color _parseColor(Object? value, Color fallback) {
-    if (value is! String) {
-      return fallback;
-    }
-
-    String hex = value.trim().replaceFirst('#', '');
-    if (hex.length == 6) {
-      hex = 'FF$hex';
-    }
-    if (hex.length != 8) {
-      return fallback;
-    }
-
-    final int? parsed = int.tryParse(hex, radix: 16);
-    return parsed == null ? fallback : Color(parsed);
-  }
-
-  static String _colorToHex(Color color) {
-    final String hex = color
-        .toARGB32()
-        .toRadixString(16)
-        .padLeft(8, '0')
-        .toUpperCase();
-    return '#$hex';
   }
 }

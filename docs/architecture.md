@@ -143,8 +143,8 @@ Floating Player Bar 始终位于 `Stack` 中，并使用
 
 `AppTheme` 提供 `light(ThemePalette)` / `dark(ThemePalette)` 两套 `ThemeData`：
 
-- 明暗色板定义在 `assets/config/app_config.json` 的 `theme` 段，支持
-  `mode` / `light` / `dark`。
+- 明暗色板与底部玻璃参数定义在 `assets/config/app_config.json` 的 `theme` 段，
+  支持 `mode` / `light` / `dark` / `glass`。
 - `ThemeConfig` / `ThemePalette` 负责解析十六进制颜色，小写文件名见
   `lib/core/config/theme_config.dart`。
 - `ColorScheme.fromSeed(...).copyWith(...)` 使用配置中的

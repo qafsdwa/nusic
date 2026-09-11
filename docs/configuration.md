@@ -67,6 +67,45 @@ flutter:
       "textPrimary": "#E8EAED",
       "textSecondary": "#BDC1C6",
       "divider": "#3C4043"
+    },
+    "glass": {
+      "blur": 24,
+      "borderWidth": 1,
+      "shadowBlurRadius": 28,
+      "shadowSpreadRadius": 1,
+      "shadowOffsetY": 8,
+      "light": {
+        "surfaceStart": "#FFFFFF",
+        "surfaceStartOpacity": 0.76,
+        "surfaceEnd": "#FFFFFF",
+        "surfaceEndOpacity": 0.56,
+        "borderStart": "#FFFFFF",
+        "borderStartOpacity": 0.92,
+        "borderMiddle": "#FFFFFF",
+        "borderMiddleOpacity": 0.30,
+        "borderEnd": "#FFFFFF",
+        "borderEndOpacity": 0.70,
+        "highlight": "#FFFFFF",
+        "highlightOpacity": 0.32,
+        "shadow": "#000000",
+        "shadowOpacity": 0.08
+      },
+      "dark": {
+        "surfaceStart": "#2A2B2F",
+        "surfaceStartOpacity": 0.78,
+        "surfaceEnd": "#1F2023",
+        "surfaceEndOpacity": 0.66,
+        "borderStart": "#FFFFFF",
+        "borderStartOpacity": 0.22,
+        "borderMiddle": "#FFFFFF",
+        "borderMiddleOpacity": 0.04,
+        "borderEnd": "#FFFFFF",
+        "borderEndOpacity": 0.10,
+        "highlight": "#FFFFFF",
+        "highlightOpacity": 0.10,
+        "shadow": "#000000",
+        "shadowOpacity": 0.25
+      }
     }
   }
 }
@@ -111,6 +150,38 @@ flutter:
 | `mode` | string | `"system"` | 主题模式：`system` / `light` / `dark` |
 | `light` | object | `ThemePalette.lightFallback` | 浅色模式色板 |
 | `dark` | object | `ThemePalette.darkFallback` | 深色模式色板 |
+| `glass` | object | `GlassConfig.fallback` | 底部 Floating Player Bar 液态玻璃参数 |
+
+#### `theme.glass`
+
+| 字段 | 类型 | 默认值 | 说明 |
+| --- | --- | --- | --- |
+| `blur` | number | `24` | 背景模糊 sigma，越大越模糊 |
+| `borderWidth` | number | `1` | 玻璃边框宽度 |
+| `shadowBlurRadius` | number | `28` | 外阴影模糊半径 |
+| `shadowSpreadRadius` | number | `1` | 外阴影扩散半径 |
+| `shadowOffsetY` | number | `8` | 外阴影向下偏移 |
+| `light` | object | 见下 | 浅色模式玻璃参数 |
+| `dark` | object | 见下 | 深色模式玻璃参数 |
+
+#### `theme.glass.light` / `theme.glass.dark`
+
+| 字段 | 类型 | 默认值（light / dark） | 说明 |
+| --- | --- | --- | --- |
+| `surfaceStart` | string | `#FFFFFF` / `#2A2B2F` | 玻璃表面渐变起点色 |
+| `surfaceStartOpacity` | number | `0.76` / `0.78` | 渐变起点透明度 |
+| `surfaceEnd` | string | `#FFFFFF` / `#1F2023` | 玻璃表面渐变终点色 |
+| `surfaceEndOpacity` | number | `0.56` / `0.66` | 渐变终点透明度 |
+| `borderStart` | string | `#FFFFFF` / `#FFFFFF` | 渐变描边起点色 |
+| `borderStartOpacity` | number | `0.92` / `0.22` | 描边起点透明度 |
+| `borderMiddle` | string | `#FFFFFF` / `#FFFFFF` | 渐变描边中间色 |
+| `borderMiddleOpacity` | number | `0.30` / `0.04` | 描边中间透明度 |
+| `borderEnd` | string | `#FFFFFF` / `#FFFFFF` | 渐变描边终点色 |
+| `borderEndOpacity` | number | `0.70` / `0.10` | 描边终点透明度 |
+| `highlight` | string | `#FFFFFF` / `#FFFFFF` | 左上高光颜色 |
+| `highlightOpacity` | number | `0.32` / `0.10` | 高光透明度 |
+| `shadow` | string | `#000000` / `#000000` | 阴影颜色 |
+| `shadowOpacity` | number | `0.08` / `0.25` | 阴影透明度 |
 
 #### `theme.light` / `theme.dark`
 
@@ -172,6 +243,8 @@ AppConfig
 | --- | --- |
 | `lib/core/config/app_config.dart` | `AppConfig`、`PlayerConfig` 数据模型与 JSON 解析 |
 | `lib/core/config/theme_config.dart` | `ThemeConfig`、`ThemePalette` 与颜色 hex 解析 |
+| `lib/core/config/glass_config.dart` | `GlassConfig`、`GlassPalette`：底部玻璃条颜色、透明度、模糊与阴影 |
+| `lib/core/config/config_color.dart` | 配置颜色 / 透明度 / 数值解析工具 |
 | `lib/core/network/backend_config.dart` | `BackendConfig` 数据模型与 JSON 解析 |
 | `lib/core/config/app_config_loader.dart` | 从 Flutter asset 加载并解析配置 |
 | `lib/core/config/app_config_provider.dart` | Riverpod `appConfigProvider` |

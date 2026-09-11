@@ -18,6 +18,8 @@
 | --- | --- |
 | `app_config.dart` | `AppConfig` / `PlayerConfig`：配置模型、`fromJson` / `toJson`、fallback |
 | `theme_config.dart` | `ThemeConfig` / `ThemePalette`：主题模式与明暗色板、hex 颜色解析 |
+| `glass_config.dart` | `GlassConfig` / `GlassPalette`：底部 Floating Player Bar 的玻璃颜色、透明度、模糊与阴影 |
+| `config_color.dart` | 配置颜色 / 透明度 / 数值解析工具 |
 | `app_config_loader.dart` | `AppConfigLoader`：从 `assets/config/app_config.json` 加载配置；异常时回退 |
 | `app_config_provider.dart` | `appConfigProvider`：全局配置 Riverpod Provider |
 | `app_bootstrap.dart` | `initializeApp()`：初始化 Flutter 绑定并加载启动配置 |
@@ -96,7 +98,7 @@
 | 目录 / 文件 | 职责 |
 | --- | --- |
 | `common/cover_artwork.dart` | `CoverArtwork`：用首字符 + 确定性渐变生成占位封面 |
-| `common/glass_container.dart` | `GlassContainer`：`ClipRRect + BackdropFilter` 液态玻璃容器，支持表面渐变、渐变描边与高光，仅用于 Floating Player Bar 等强调元素 |
+| `common/glass_container.dart` | `GlassContainer`：`ClipRRect + BackdropFilter` 液态玻璃容器，支持表面渐变、渐变描边、高光与配置化透明度，仅用于 Floating Player Bar 等强调元素 |
 | `common/responsive_layout.dart` | `ResponsiveLayout`：Mobile / Tablet / Desktop 三槽位布局 |
 | `common/placeholder_page.dart` | 通用占位页（收藏 / 设置） |
 | `navigation/desktop_navigation.dart` | `DesktopNavigationPanel` / `MuseNavigationRail` / `MuseBottomNavigationBar` |

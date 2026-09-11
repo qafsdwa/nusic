@@ -40,6 +40,45 @@
       "textPrimary": "#E8EAED",
       "textSecondary": "#BDC1C6",
       "divider": "#3C4043"
+    },
+    "glass": {
+      "blur": 24,
+      "borderWidth": 1,
+      "shadowBlurRadius": 28,
+      "shadowSpreadRadius": 1,
+      "shadowOffsetY": 8,
+      "light": {
+        "surfaceStart": "#FFFFFF",
+        "surfaceStartOpacity": 0.76,
+        "surfaceEnd": "#FFFFFF",
+        "surfaceEndOpacity": 0.56,
+        "borderStart": "#FFFFFF",
+        "borderStartOpacity": 0.92,
+        "borderMiddle": "#FFFFFF",
+        "borderMiddleOpacity": 0.3,
+        "borderEnd": "#FFFFFF",
+        "borderEndOpacity": 0.7,
+        "highlight": "#FFFFFF",
+        "highlightOpacity": 0.32,
+        "shadow": "#000000",
+        "shadowOpacity": 0.08
+      },
+      "dark": {
+        "surfaceStart": "#2A2B2F",
+        "surfaceStartOpacity": 0.78,
+        "surfaceEnd": "#1F2023",
+        "surfaceEndOpacity": 0.66,
+        "borderStart": "#FFFFFF",
+        "borderStartOpacity": 0.22,
+        "borderMiddle": "#FFFFFF",
+        "borderMiddleOpacity": 0.04,
+        "borderEnd": "#FFFFFF",
+        "borderEndOpacity": 0.1,
+        "highlight": "#FFFFFF",
+        "highlightOpacity": 0.1,
+        "shadow": "#000000",
+        "shadowOpacity": 0.25
+      }
     }
   }
 }
