@@ -39,13 +39,46 @@ class FloatingPlayerBar extends ConsumerWidget {
       ),
     ];
 
+    final LinearGradient glassGradient = LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: isDark
+          ? <Color>[
+              const Color(0xFF2A2B2F).withValues(alpha: 0.78),
+              const Color(0xFF1F2023).withValues(alpha: 0.66),
+            ]
+          : <Color>[
+              Colors.white.withValues(alpha: 0.76),
+              Colors.white.withValues(alpha: 0.56),
+            ],
+    );
+
+    final LinearGradient glassBorderGradient = LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: isDark
+          ? <Color>[
+              Colors.white.withValues(alpha: 0.22),
+              Colors.white.withValues(alpha: 0.04),
+              Colors.white.withValues(alpha: 0.10),
+            ]
+          : <Color>[
+              Colors.white.withValues(alpha: 0.92),
+              Colors.white.withValues(alpha: 0.30),
+              Colors.white.withValues(alpha: 0.70),
+            ],
+    );
+
     return SizedBox(
       height: AppSizes.floatingPlayerBarHeight,
       child: GlassContainer(
         borderRadius: AppSizes.floatingPlayerBarRadius,
-        blur: 22,
+        blur: 24,
         opacity: isDark ? 0.72 : 0.68,
         shadow: shadow,
+        gradient: glassGradient,
+        borderGradient: glassBorderGradient,
+        highlight: true,
         child: Material(
           type: MaterialType.transparency,
           child: InkWell(

@@ -9,6 +9,12 @@ import '../../core/constants/app_sizes.dart';
 /// Keep usage rare. In Muse Player the floating player bar is the primary
 /// glass element; ordinary cards and lists should stay opaque so
 /// [BackdropFilter] cost stays low.
+///
+/// The optional [gradient], [borderGradient] and [highlight] parameters add the
+/// subtle "liquid glass" treatment used by the floating player bar:
+/// - a soft diagonal glass body gradient;
+/// - a specular gradient border;
+/// - a faint diagonal highlight across the top-left.
 class GlassContainer extends StatelessWidget {
   const GlassContainer({
     super.key,
@@ -20,6 +26,10 @@ class GlassContainer extends StatelessWidget {
     this.color,
     this.border,
     this.shadow,
+    this.gradient,
+    this.borderGradient,
+    this.highlight = false,
+    this.highlightColor,
   });
 
   final Widget child;
@@ -30,6 +40,10 @@ class GlassContainer extends StatelessWidget {
   final Color? color;
   final Border? border;
   final List<BoxShadow>? shadow;
+  final Gradient? gradient;
+  final Gradient? borderGradient;
+  final bool highlight;
+  final Color? highlightColor;
 
   @override
   Widget build(BuildContext context) {
@@ -46,26 +60,93 @@ class GlassContainer extends StatelessWidget {
               : Colors.white.withValues(alpha: 0.65),
           width: 1,
         );
+    final BorderRadius radius = BorderRadius.circular(borderRadius);
+    final Color sheenColor = highlightColor ?? Colors.white;
 
     return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(borderRadius),
-        boxShadow: shadow,
-      ),
+      decoration: BoxDecoration(borderRadius: radius, boxShadow: shadow),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(borderRadius),
+        borderRadius: radius,
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
           child: DecoratedBox(
             decoration: BoxDecoration(
-              color: resolvedColor.withValues(alpha: opacity),
-              borderRadius: BorderRadius.circular(borderRadius),
-              border: resolvedBorder,
+              color: gradient == null
+                  ? resolvedColor.withValues(alpha: opacity)
+                  : null,
+              gradient: gradient,
+              borderRadius: radius,
+              border: borderGradient == null ? resolvedBorder : null,
             ),
-            child: Padding(padding: padding ?? EdgeInsets.zero, child: child),
+            child: Stack(
+              children: <Widget>[
+                if (highlight)
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          borderRadius: radius,
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: <Color>[
+                              sheenColor.withValues(
+                                alpha: isDark ? 0.10 : 0.32,
+                              ),
+                              sheenColor.withValues(alpha: 0.02),
+                              Colors.transparent,
+                            ],
+                            stops: const <double>[0.0, 0.28, 1.0],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                Padding(padding: padding ?? EdgeInsets.zero, child: child),
+                if (borderGradient != null)
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: CustomPaint(
+                        painter: _GradientBorderPainter(
+                          borderRadius: radius,
+                          gradient: borderGradient!,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
     );
+  }
+}
+
+/// Paints a 1px gradient stroke around a rounded rectangle.
+class _GradientBorderPainter extends CustomPainter {
+  const _GradientBorderPainter({
+    required this.borderRadius,
+    required this.gradient,
+  });
+
+  final BorderRadius borderRadius;
+  final Gradient gradient;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Rect rect = Offset.zero & size;
+    final Paint paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1
+      ..shader = gradient.createShader(rect);
+
+    canvas.drawRRect(borderRadius.toRRect(rect).deflate(0.5), paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _GradientBorderPainter oldDelegate) {
+    return oldDelegate.gradient != gradient ||
+        oldDelegate.borderRadius != borderRadius;
   }
 }

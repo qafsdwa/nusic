@@ -96,7 +96,7 @@
 | 目录 / 文件 | 职责 |
 | --- | --- |
 | `common/cover_artwork.dart` | `CoverArtwork`：用首字符 + 确定性渐变生成占位封面 |
-| `common/glass_container.dart` | `GlassContainer`：`ClipRRect + BackdropFilter` 液态玻璃容器，仅用于 Floating Player Bar 等强调元素 |
+| `common/glass_container.dart` | `GlassContainer`：`ClipRRect + BackdropFilter` 液态玻璃容器，支持表面渐变、渐变描边与高光，仅用于 Floating Player Bar 等强调元素 |
 | `common/responsive_layout.dart` | `ResponsiveLayout`：Mobile / Tablet / Desktop 三槽位布局 |
 | `common/placeholder_page.dart` | 通用占位页（收藏 / 设置） |
 | `navigation/desktop_navigation.dart` | `DesktopNavigationPanel` / `MuseNavigationRail` / `MuseBottomNavigationBar` |
