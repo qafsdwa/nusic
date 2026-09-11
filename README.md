@@ -10,6 +10,7 @@ No real audio playback or backend calls are implemented yet.
 - Flutter 3.x / Dart
 - Material Design 3
 - `flutter_riverpod`
+- `window_manager` for desktop custom title bar
 - Responsive desktop-first layout
 - JSON asset configuration with startup initialization
 - Future backend: Rust REST API + WebSocket
@@ -33,6 +34,7 @@ lib/
 │   ├── constants/             # Sizes and navigation sections
 │   ├── extensions/            # Context breakpoint helpers
 │   ├── network/               # Rust API endpoint placeholders
+│   ├── window/                # Desktop window setup + custom title bar switch
 │   └── utils/                 # Shared formatters
 ├── mock/
 │   └── mock_music.dart        # Phase 1 mock data
@@ -70,6 +72,9 @@ The Settings page also offers a runtime theme-mode toggle (`system` / `light` / 
 flutter pub get
 flutter run
 ```
+
+On Windows / Linux / macOS the native title bar is hidden and replaced by
+`CustomTitleBar` with drag, minimize, maximize and close controls.
 
 ## Check
 

@@ -37,6 +37,7 @@ lib/
 │   ├── constants/             #   尺寸、导航分区
 │   ├── extensions/            #   BuildContext 响应式扩展
 │   ├── network/               #   BackendConfig / RustApiClient 占位
+│   ├── window/                #   桌面窗口初始化与自定义标题栏开关
 │   └── utils/                 #   通用格式化工具
 ├── mock/                      # Phase 1 Mock 数据
 │   └── mock_music.dart
@@ -54,6 +55,7 @@ lib/
     ├── common/
     ├── navigation/
     ├── player/
+    ├── window/                 # CustomTitleBar
     └── song/
 ```
 
@@ -71,7 +73,8 @@ lib/
 main()
   └── initializeApp()
         ├── WidgetsFlutterBinding.ensureInitialized()
-        └── AppConfigLoader.load()
+        ├── AppConfigLoader.load()
+        └── setUpDesktopWindow()
               ├── rootBundle.loadString(...)
               ├── json.decode(...)
               └── AppConfig.fromJson(...)
@@ -83,6 +86,8 @@ main()
       )
 ```
 
+- 桌面窗口：`lib/core/window/window_setup.dart` 隐藏原生标题栏，Flutter
+  侧由 `lib/widgets/window/custom_title_bar.dart` 提供拖拽与窗口控制。
 - 配置文件：`assets/config/app_config.json`
 - 配置模型：`lib/core/config/app_config.dart`
 - 加载器：`lib/core/config/app_config_loader.dart`

@@ -48,6 +48,12 @@
 | `backend_config.dart` | `BackendConfig`：后端 base URL 与端点路径的数据模型，可从 JSON 解析 |
 | `api_client.dart` | `RustApiClient`：空壳单例，未来 REST + WebSocket 客户端注入点 |
 
+### window/
+
+| 文件 | 职责 |
+| --- | --- |
+| `window_setup.dart` | `setUpDesktopWindow()`：通过 `window_manager` 隐藏原生标题栏，设置窗口初始尺寸与最小尺寸；`isDesktopPlatform` 平台判断 |
+
 ### utils/
 
 | 文件 | 职责 |
@@ -108,6 +114,7 @@
 | `player/player_progress.dart` | `PlayerProgressSlider` / `PlayerProgressLine`：进度与时间 |
 | `song/song_tile.dart` | `SongTile` + `SongAction`：标准歌曲行（当前播放高亮 + 更多菜单） |
 | `album/album_card.dart` | `AlbumCard`：方形专辑卡片与 hover 轻微缩放 |
+| `window/custom_title_bar.dart` | `CustomTitleBar`：桌面自定义标题栏，支持拖拽、双击最大化 / 还原、最小化与关闭 |
 
 ## 复用关系
 

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/config/app_config.dart';
 import '../core/config/app_config_provider.dart';
+import '../core/window/window_setup.dart';
 import '../core/constants/app_sizes.dart';
 import '../pages/home/home_page.dart';
 import '../pages/library/library_page.dart';
@@ -13,6 +14,7 @@ import '../providers/navigation_provider.dart';
 import '../providers/theme_mode_provider.dart';
 import '../widgets/common/placeholder_page.dart';
 import '../widgets/navigation/desktop_navigation.dart';
+import '../widgets/window/custom_title_bar.dart';
 import '../widgets/player/floating_player_bar.dart';
 import 'breakpoints.dart';
 import 'router.dart';
@@ -70,90 +72,103 @@ class MainShell extends ConsumerWidget {
     final Widget content = IndexedStack(index: selectedIndex, children: pages);
 
     return Scaffold(
-      body: LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints constraints) {
-          final AppBreakpoint breakpoint = AppBreakpoints.fromWidth(
-            constraints.maxWidth,
-          );
+      body: Column(
+        children: <Widget>[
+          if (isDesktopPlatform) const CustomTitleBar(),
+          Expanded(
+            child: LayoutBuilder(
+              builder: (BuildContext context, BoxConstraints constraints) {
+                final AppBreakpoint breakpoint = AppBreakpoints.fromWidth(
+                  constraints.maxWidth,
+                );
 
-          return switch (breakpoint) {
-            AppBreakpoint.desktop => Stack(
-              children: <Widget>[
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: <Widget>[
-                    DesktopNavigationPanel(
-                      selectedIndex: selectedIndex,
-                      onDestinationSelected: (int index) {
-                        ref.read(navigationProvider.notifier).select(index);
-                      },
-                    ),
-                    VerticalDivider(
-                      width: 1,
-                      thickness: 1,
-                      color: Theme.of(context).colorScheme.outlineVariant,
-                    ),
-                    Expanded(child: content),
-                  ],
-                ),
-                const Positioned(
-                  left: AppSizes.floatingPlayerBarHorizontalMargin,
-                  right: AppSizes.floatingPlayerBarHorizontalMargin,
-                  bottom: AppSizes.floatingPlayerBarBottom,
-                  child: FloatingPlayerBar(),
-                ),
-              ],
+                return switch (breakpoint) {
+                  AppBreakpoint.desktop => Stack(
+                    children: <Widget>[
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: <Widget>[
+                          DesktopNavigationPanel(
+                            selectedIndex: selectedIndex,
+                            onDestinationSelected: (int index) {
+                              ref
+                                  .read(navigationProvider.notifier)
+                                  .select(index);
+                            },
+                          ),
+                          VerticalDivider(
+                            width: 1,
+                            thickness: 1,
+                            color: Theme.of(context).colorScheme.outlineVariant,
+                          ),
+                          Expanded(child: content),
+                        ],
+                      ),
+                      const Positioned(
+                        left: AppSizes.floatingPlayerBarHorizontalMargin,
+                        right: AppSizes.floatingPlayerBarHorizontalMargin,
+                        bottom: AppSizes.floatingPlayerBarBottom,
+                        child: FloatingPlayerBar(),
+                      ),
+                    ],
+                  ),
+                  AppBreakpoint.tablet => Stack(
+                    children: <Widget>[
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: <Widget>[
+                          MuseNavigationRail(
+                            selectedIndex: selectedIndex,
+                            onDestinationSelected: (int index) {
+                              ref
+                                  .read(navigationProvider.notifier)
+                                  .select(index);
+                            },
+                          ),
+                          VerticalDivider(
+                            width: 1,
+                            thickness: 1,
+                            color: Theme.of(context).colorScheme.outlineVariant,
+                          ),
+                          Expanded(child: content),
+                        ],
+                      ),
+                      const Positioned(
+                        left: AppSizes.floatingPlayerBarHorizontalMargin,
+                        right: AppSizes.floatingPlayerBarHorizontalMargin,
+                        bottom: AppSizes.floatingPlayerBarBottom,
+                        child: FloatingPlayerBar(),
+                      ),
+                    ],
+                  ),
+                  AppBreakpoint.mobile => Stack(
+                    children: <Widget>[
+                      Column(
+                        children: <Widget>[
+                          Expanded(child: content),
+                          MuseBottomNavigationBar(
+                            selectedIndex: selectedIndex,
+                            onDestinationSelected: (int index) {
+                              ref
+                                  .read(navigationProvider.notifier)
+                                  .select(index);
+                            },
+                          ),
+                        ],
+                      ),
+                      const Positioned(
+                        left: AppSizes.floatingPlayerBarHorizontalMargin,
+                        right: AppSizes.floatingPlayerBarHorizontalMargin,
+                        bottom: AppSizes.floatingPlayerBarMobileBottom,
+                        child: FloatingPlayerBar(),
+                      ),
+                    ],
+                  ),
+                };
+              },
             ),
-            AppBreakpoint.tablet => Stack(
-              children: <Widget>[
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: <Widget>[
-                    MuseNavigationRail(
-                      selectedIndex: selectedIndex,
-                      onDestinationSelected: (int index) {
-                        ref.read(navigationProvider.notifier).select(index);
-                      },
-                    ),
-                    VerticalDivider(
-                      width: 1,
-                      thickness: 1,
-                      color: Theme.of(context).colorScheme.outlineVariant,
-                    ),
-                    Expanded(child: content),
-                  ],
-                ),
-                const Positioned(
-                  left: AppSizes.floatingPlayerBarHorizontalMargin,
-                  right: AppSizes.floatingPlayerBarHorizontalMargin,
-                  bottom: AppSizes.floatingPlayerBarBottom,
-                  child: FloatingPlayerBar(),
-                ),
-              ],
-            ),
-            AppBreakpoint.mobile => Stack(
-              children: <Widget>[
-                Column(
-                  children: <Widget>[
-                    Expanded(child: content),
-                    MuseBottomNavigationBar(
-                      selectedIndex: selectedIndex,
-                      onDestinationSelected: (int index) {
-                        ref.read(navigationProvider.notifier).select(index);
-                      },
-                    ),
-                  ],
-                ),
-                const Positioned(
-                  left: AppSizes.floatingPlayerBarHorizontalMargin,
-                  right: AppSizes.floatingPlayerBarHorizontalMargin,
-                  bottom: AppSizes.floatingPlayerBarMobileBottom,
-                  child: FloatingPlayerBar(),
-                ),
-              ],
-            ),
-          };
-        },
+          ),
+        ],
       ),
     );
   }
