@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/config/app_config.dart';
@@ -37,6 +38,25 @@ class MuseApp extends ConsumerWidget {
       themeMode: themeMode,
       home: const MainShell(),
       onGenerateRoute: AppRoutes.onGenerateRoute,
+      builder: (BuildContext context, Widget? child) {
+        final ThemeData theme = Theme.of(context);
+        final bool isDark = theme.brightness == Brightness.dark;
+        return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            statusBarIconBrightness: isDark
+                ? Brightness.light
+                : Brightness.dark,
+            statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
+            systemNavigationBarColor: theme.colorScheme.surface,
+            systemNavigationBarDividerColor: Colors.transparent,
+            systemNavigationBarIconBrightness: isDark
+                ? Brightness.light
+                : Brightness.dark,
+          ),
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
     );
   }
 }
@@ -76,96 +96,107 @@ class MainShell extends ConsumerWidget {
         children: <Widget>[
           if (isDesktopPlatform) const CustomTitleBar(),
           Expanded(
-            child: LayoutBuilder(
-              builder: (BuildContext context, BoxConstraints constraints) {
-                final AppBreakpoint breakpoint = AppBreakpoints.fromWidth(
-                  constraints.maxWidth,
-                );
+            child: SafeArea(
+              top: !isDesktopPlatform,
+              bottom: false,
+              child: LayoutBuilder(
+                builder: (BuildContext context, BoxConstraints constraints) {
+                  final AppBreakpoint breakpoint = AppBreakpoints.fromWidth(
+                    constraints.maxWidth,
+                  );
 
-                return switch (breakpoint) {
-                  AppBreakpoint.desktop => Stack(
-                    children: <Widget>[
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: <Widget>[
-                          DesktopNavigationPanel(
-                            selectedIndex: selectedIndex,
-                            onDestinationSelected: (int index) {
-                              ref
-                                  .read(navigationProvider.notifier)
-                                  .select(index);
-                            },
-                          ),
-                          VerticalDivider(
-                            width: 1,
-                            thickness: 1,
-                            color: Theme.of(context).colorScheme.outlineVariant,
-                          ),
-                          Expanded(child: content),
-                        ],
-                      ),
-                      const Positioned(
-                        left: AppSizes.floatingPlayerBarHorizontalMargin,
-                        right: AppSizes.floatingPlayerBarHorizontalMargin,
-                        bottom: AppSizes.floatingPlayerBarBottom,
-                        child: FloatingPlayerBar(),
-                      ),
-                    ],
-                  ),
-                  AppBreakpoint.tablet => Stack(
-                    children: <Widget>[
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: <Widget>[
-                          MuseNavigationRail(
-                            selectedIndex: selectedIndex,
-                            onDestinationSelected: (int index) {
-                              ref
-                                  .read(navigationProvider.notifier)
-                                  .select(index);
-                            },
-                          ),
-                          VerticalDivider(
-                            width: 1,
-                            thickness: 1,
-                            color: Theme.of(context).colorScheme.outlineVariant,
-                          ),
-                          Expanded(child: content),
-                        ],
-                      ),
-                      const Positioned(
-                        left: AppSizes.floatingPlayerBarHorizontalMargin,
-                        right: AppSizes.floatingPlayerBarHorizontalMargin,
-                        bottom: AppSizes.floatingPlayerBarBottom,
-                        child: FloatingPlayerBar(),
-                      ),
-                    ],
-                  ),
-                  AppBreakpoint.mobile => Stack(
-                    children: <Widget>[
-                      Column(
-                        children: <Widget>[
-                          Expanded(child: content),
-                          MuseBottomNavigationBar(
-                            selectedIndex: selectedIndex,
-                            onDestinationSelected: (int index) {
-                              ref
-                                  .read(navigationProvider.notifier)
-                                  .select(index);
-                            },
-                          ),
-                        ],
-                      ),
-                      const Positioned(
-                        left: AppSizes.floatingPlayerBarHorizontalMargin,
-                        right: AppSizes.floatingPlayerBarHorizontalMargin,
-                        bottom: AppSizes.floatingPlayerBarMobileBottom,
-                        child: FloatingPlayerBar(),
-                      ),
-                    ],
-                  ),
-                };
-              },
+                  return switch (breakpoint) {
+                    AppBreakpoint.desktop => Stack(
+                      children: <Widget>[
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: <Widget>[
+                            DesktopNavigationPanel(
+                              selectedIndex: selectedIndex,
+                              onDestinationSelected: (int index) {
+                                ref
+                                    .read(navigationProvider.notifier)
+                                    .select(index);
+                              },
+                            ),
+                            VerticalDivider(
+                              width: 1,
+                              thickness: 1,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .outlineVariant,
+                            ),
+                            Expanded(child: content),
+                          ],
+                        ),
+                        const Positioned(
+                          left: AppSizes.floatingPlayerBarHorizontalMargin,
+                          right: AppSizes.floatingPlayerBarHorizontalMargin,
+                          bottom: AppSizes.floatingPlayerBarBottom,
+                          child: FloatingPlayerBar(),
+                        ),
+                      ],
+                    ),
+                    AppBreakpoint.tablet => Stack(
+                      children: <Widget>[
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: <Widget>[
+                            MuseNavigationRail(
+                              selectedIndex: selectedIndex,
+                              onDestinationSelected: (int index) {
+                                ref
+                                    .read(navigationProvider.notifier)
+                                    .select(index);
+                              },
+                            ),
+                            VerticalDivider(
+                              width: 1,
+                              thickness: 1,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .outlineVariant,
+                            ),
+                            Expanded(child: content),
+                          ],
+                        ),
+                        const Positioned(
+                          left: AppSizes.floatingPlayerBarHorizontalMargin,
+                          right: AppSizes.floatingPlayerBarHorizontalMargin,
+                          bottom: AppSizes.floatingPlayerBarBottom,
+                          child: FloatingPlayerBar(),
+                        ),
+                      ],
+                    ),
+                    AppBreakpoint.mobile => Stack(
+                      children: <Widget>[
+                        Column(
+                          children: <Widget>[
+                            Expanded(child: content),
+                            MuseBottomNavigationBar(
+                              selectedIndex: selectedIndex,
+                              onDestinationSelected: (int index) {
+                                ref
+                                    .read(navigationProvider.notifier)
+                                    .select(index);
+                              },
+                            ),
+                          ],
+                        ),
+                        Positioned(
+                          left: AppSizes.floatingPlayerBarHorizontalMargin,
+                          right: AppSizes.floatingPlayerBarHorizontalMargin,
+                          bottom:
+                              AppSizes.navigationBarHeight +
+                              MediaQuery.paddingOf(context).bottom +
+                              AppSizes.spacingSm,
+                          child: const FloatingPlayerBar(),
+                        ),
+                      ],
+                    ),
+                  };
+                },
+              ),
             ),
           ),
         ],

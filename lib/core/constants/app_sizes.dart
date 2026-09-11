@@ -14,14 +14,14 @@ abstract final class AppSizes {
   /// Collapsed Material navigation rail width for tablet layouts.
   static const double navigationRailWidth = 80;
 
+  /// Material 3 [NavigationBar] default height.
+  static const double navigationBarHeight = 80;
+
   /// Floating player bar metrics.
   static const double floatingPlayerBarHeight = 92;
   static const double floatingPlayerBarRadius = 30;
   static const double floatingPlayerBarHorizontalMargin = 24;
   static const double floatingPlayerBarBottom = 20;
-
-  /// Mobile floating player sits above the Material NavigationBar.
-  static const double floatingPlayerBarMobileBottom = 88;
 
   /// Scroll views must reserve space so the floating player never covers
   /// content or action buttons.
