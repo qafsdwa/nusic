@@ -26,6 +26,14 @@
 
 详细字段见 [configuration.md](configuration.md)。
 
+## core/bridge/ — Rust 桥接契约
+
+| 文件 | 职责 |
+| --- | --- |
+| `bridge_models.dart` | Dart 侧手写 Bridge DTO：`BridgeTrack` / `BridgePlayerSnapshot` / 命令 / 事件 |
+| `bridge_mapper.dart` | UI 模型（`Song` / `PlayerState`）与 Bridge DTO 的转换 |
+| `generated/` | flutter_rust_bridge codegen 生成目录（待生成） |
+
 ## core/ — 其他基础设施
 
 ### constants/
@@ -59,6 +67,17 @@
 | 文件 | 职责 |
 | --- | --- |
 | `formatters.dart` | `formatDuration`：`Duration` → `m:ss` / `hh:mm:ss` 文本 |
+
+## rust/ — Rust 桥接骨架
+
+| 文件 | 职责 |
+| --- | --- |
+| `rust/Cargo.toml` | Rust crate 骨架，依赖 `flutter_rust_bridge` 与 `serde` |
+| `rust/src/api/bridge_models.rs` | Rust 侧数据契约：Track / Snapshot / Command / Event / Error |
+| `rust/src/lib.rs` | Rust crate 入口 |
+| `flutter_rust_bridge.yaml` | FRB 代码生成配置 |
+
+详细设计见 [rust-bridge.md](rust-bridge.md)。
 
 ## mock/ — Mock 数据
 

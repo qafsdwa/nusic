@@ -11,6 +11,7 @@ Muse Player 是一个基于 Flutter 的跨平台 Material Design 3 音乐播放�
 | [configuration.md](configuration.md) | `app_config.json` 配置字段、初始化流程、容错与扩展方式 |
 | [modules.md](modules.md) | 各目录 / 文件模块的职责说明 |
 | [backend-api.md](backend-api.md) | 未来 Rust 后端 REST + WebSocket 接口契约 |
+| [rust-bridge.md](rust-bridge.md) | flutter_rust_bridge 数据契约、Dart ↔ Rust 映射与事件流设计 |
 | [roadmap.md](roadmap.md) | 分阶段规划（Phase 1 → 后续） |
 
 ## 快速开始

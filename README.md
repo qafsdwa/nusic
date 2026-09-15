@@ -13,7 +13,7 @@ No real audio playback or backend calls are implemented yet.
 - `window_manager` for desktop custom title bar
 - Responsive desktop-first layout
 - JSON asset configuration with startup initialization
-- Future backend: Rust REST API + WebSocket
+- Future backend: Rust REST API + WebSocket + `flutter_rust_bridge`
 
 ## Project structure
 
@@ -36,6 +36,7 @@ lib/
 │   ├── network/               # Rust API endpoint placeholders
 │   ├── window/                # Desktop window setup + custom title bar switch
 │   └── utils/                 # Shared formatters
+├── core/bridge/              # flutter_rust_bridge DTO contract + mapper
 ├── mock/
 │   └── mock_music.dart        # Phase 1 mock data
 ├── models/                    # Song, Album, Playlist
@@ -64,6 +65,7 @@ endpoints, initial player defaults and the Material 3 theme palette / theme mode
 if the asset is missing or malformed, so tests and local runs still work.
 
 See [docs/configuration.md](docs/configuration.md) for all fields.
+See [docs/rust-bridge.md](docs/rust-bridge.md) for the Flutter ↔ Rust data contract.
 The Settings page also offers a runtime theme-mode toggle (`system` / `light` / `dark`).
 
 ## Run
