@@ -34,11 +34,10 @@ lib/
 │   └── theme.dart             #   Material 3 明暗主题
 ├── core/                      # 基础设施层
 │   ├── config/                #   AppConfig / Loader / Provider / Bootstrap
-│   ├── constants/             #   尺寸、导航分区
-│   ├── extensions/            #   BuildContext 响应式扩展
+│   ├── constants/             #   尺寸、形状令牌、导航分区
 │   ├── network/               #   BackendConfig / RustApiClient 占位
 │   ├── window/                #   桌面窗口初始化与自定义标题栏开关
-│   └── utils/                 #   通用格式化工具
+│   └── utils/                 #   格式化工具与动效时长（AppMotion）
 ├── mock/                      # Phase 1 Mock 数据
 │   └── mock_music.dart
 ├── models/                    # 领域模型（Song、Album、Playlist）
@@ -128,21 +127,35 @@ AppConfig + MockMusic (静态资源)
 
 ## 响应式布局
 
-外壳 `MainShell` 使用 `LayoutBuilder` 依据宽度切换布局：
+外壳 `MainShell` 通过 `ResponsiveLayout` 依据可用宽度选择布局。
+断点对齐 **Material 3 window size class**，而不是设备名：
 
-| 断点 | 宽度 | 导航形式 | 说明 |
-| --- | --- | --- | --- |
-| Mobile | `< 700` | Material `NavigationBar` | 底部导航 + Floating Player Bar |
-| Tablet | `700 ~ 1100` | `NavigationRail` | 侧边导航，Floating Player Bar 显示当前时间 |
-| Desktop | `> 1100` | 自定义 `DesktopNavigationPanel` | 220px 侧边面板，Floating Player Bar 完整控制 |
+| 断点 | 宽度 | M3 window size class | 导航形式 | 说明 |
+| --- | --- | --- | --- | --- |
+| Mobile | `< 600` | compact | Material `NavigationBar` | 底部导航 + Floating Player Bar |
+| Tablet | `600 ~ 1199` | medium + expanded | `NavigationRail` | 侧边导航，Floating Player Bar 显示当前时间 |
+| Desktop | `>= 1200` | large + extra-large | 自定义 `DesktopNavigationPanel` | 220px 侧边面板，Floating Player Bar 完整控制 |
 
-所有页面内容通过 `ConstrainedBox(maxWidth: 1200)` 居中，
-保证超宽屏下内容不拉伸。
+M3 的原始边界是 600 / 840 / 1200 / 1600。`medium` 与 `expanded` 共用 rail 外壳，
+`large` 与 `extra-large` 共用常驻面板，因此只需要两个阈值 —— 但它们是 M3 的阈值，
+不是随手定的设备宽度。`AppBreakpoints` 同时导出 `compactMax` / `mediumMax` /
+`expandedMax` 供需要原始 M3 边界的场合使用。
+
+所有页面内容通过 `ConstrainedBox` 居中。**最大宽度按内容类型分两档**：
+
+| 常量 | 值 | 用途 |
+| --- | --- | --- |
+| `AppSizes.pageMaxWidth` | 1200 | 网格 / 封面类页面（首页、音乐库、歌单） |
+| `AppSizes.pageMaxWidthText` | 1040 | 文本密集页面（搜索、设置） |
+
+M3 建议 large / extra-large 窗口下的阅读型内容约束在 840–1040dp；
+1200dp 下行长过长，视线回行容易丢位。
 
 Floating Player Bar 始终位于 `Stack` 中，并使用
 `Positioned(left/right/bottom)` 悬浮在内容之上，而不是作为
 `bottomNavigationBar` 贴在窗口底部。所有可滚动页面底部预留
 `AppSizes.scrollBottomPadding = 150`，避免内容与操作按钮被遮挡。
+这两件事都由 `PageScaffold` 统一保证。
 
 ## 主题系统
 
@@ -150,15 +163,52 @@ Floating Player Bar 始终位于 `Stack` 中，并使用
 
 - 明暗色板与底部玻璃参数定义在 `assets/config/app_config.json` 的 `theme` 段，
   支持 `mode` / `light` / `dark` / `glass`。
-- `ThemeConfig` / `ThemePalette` 负责解析十六进制颜色，小写文件名见
+- `ThemeConfig` / `ThemePalette` 负责解析十六进制颜色，见
   `lib/core/config/theme_config.dart`。
-- `ColorScheme.fromSeed(...).copyWith(...)` 使用配置中的
-  `primary` / `primaryContainer` / `surface` / `onSurface` 等精确色值。
+- 色板字段名直接采用 M3 的 `md.sys.color.*` 角色名，避免一层翻译。
+- `ColorScheme.fromSeed(...).copyWith(...)` 使用配置中的精确色值。
 - `MaterialApp.themeMode` 默认来自 `config.theme.mode`，并通过
   `themeModeProvider` 支持设置页运行时切换。
 - Phase 1 默认色板仅作为 JSON 缺失或解析失败时的 fallback。
 - 仅 Floating Player Bar 使用 `GlassContainer + BackdropFilter`，
   普通列表和卡片保持普通 Surface，避免不必要的 GPU 开销。
+
+### 两个必须保持的语义区分
+
+**`outline` ≠ `outlineVariant`**。前者标记重要边界（输入框描边、聚焦环），
+后者是装饰性分隔（分割线）。把它们设成同一个值会让分割线与输入框描边无法区分，
+且之后想调任一方都会连带改动另一方。
+
+**`surfaceContainer*` 五级色阶不能塌陷**。M3 用 **tonal surface 而非阴影**表达高度，
+靠 `Lowest / Low / Container / High / Highest` 五级递进区分层级。
+把五级指向同一个色值，就等于失去了表达高度的唯一手段 —— 这也是为什么卡片
+只能一律 `elevation: 0`。
+
+### 形状令牌
+
+`AppSizes` 中的 `shape*` 常量对齐 M3 的 `md.sys.shape.corner.*` 标尺
+（none 0 / xs 4 / sm 8 / md 12 / lg 16 / lgIncreased 20 / xl 28 / xxl 48 / full）。
+**不要在标尺之外引入半径** —— 出现 18、24 这类数字通常意味着一次性的决定，
+设计一改就会漂移。
+
+唯一的例外是 `AppSizes.floatingPlayerBarRadius = 30`：播放条读起来是一块悬浮玻璃板
+而不是一张 sheet，因此刻意落在 `xl`(28) 与 `xxl`(48) 之间。它被保留但**必须保持有注释**，
+而不是悄悄四舍五入掉。
+
+### 动效
+
+所有动画时长走 `AppMotion`（`lib/core/utils/motion.dart`），它同时是减少动效的收口点：
+
+- `AppMotion.fast` (170ms) —— hover / 按压反馈
+- `AppMotion.standard` (180ms) —— 默认状态切换
+- `AppMotion.emphasized` (200ms) —— Now Playing 这类较大表面
+
+`AppMotion.of(context, duration)` 在系统开启"减少动效"
+（`MediaQuery.disableAnimations`）时返回 `Duration.zero`。
+**新增动画一律走这个入口，不要直接写 `Duration(milliseconds: ...)`** ——
+逐个 widget 判断平台偏好必然会漏。
+
+减少动效下状态变化照常发生，只是不再有过渡：反馈保留，表演取消。
 
 ## 后端接缝
 

@@ -66,16 +66,16 @@ class HomeSearchField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
     return SizedBox(
       height: AppSizes.searchFieldHeight,
       child: TextField(
         onTap: onTap,
         readOnly: true,
-        decoration: InputDecoration(
+        // No explicit fill: this field and the Search page's field must read as
+        // the same control, so both take `inputDecorationTheme`.
+        decoration: const InputDecoration(
           hintText: '搜索歌曲、专辑、歌手或歌单',
-          prefixIcon: const Icon(Icons.search),
-          fillColor: theme.colorScheme.surfaceContainerHighest,
+          prefixIcon: Icon(Icons.search),
         ),
       ),
     );

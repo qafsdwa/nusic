@@ -64,6 +64,17 @@ class ThemeConfig {
 }
 
 /// A Material 3 color palette used to build a [ThemeData].
+///
+/// Field names follow the `md.sys.color.*` roles so a palette entry can be
+/// traced back to the M3 spec without translation. Two things are deliberate:
+///
+/// - [outline] and [outlineVariant] are **separate** roles. `outline` marks
+///   important boundaries (text field borders, focus rings); `outlineVariant`
+///   is the decorative divider tone. Collapsing them removes the ability to
+///   tune one without moving the other.
+/// - The five `surfaceContainer*` steps form a tonal ramp. M3 communicates
+///   elevation through tonal surface colour rather than shadows, so these
+///   levels must stay distinguishable for nested surfaces to read as layered.
 class ThemePalette {
   const ThemePalette({
     required this.primary,
@@ -72,22 +83,45 @@ class ThemePalette {
     required this.onPrimaryContainer,
     required this.background,
     required this.surface,
-    required this.surfaceVariant,
+    required this.surfaceContainerLowest,
+    required this.surfaceContainerLow,
+    required this.surfaceContainer,
+    required this.surfaceContainerHigh,
+    required this.surfaceContainerHighest,
     required this.textPrimary,
     required this.textSecondary,
-    required this.divider,
+    required this.outline,
+    required this.outlineVariant,
   });
 
   final Color primary;
   final Color onPrimary;
   final Color primaryContainer;
   final Color onPrimaryContainer;
+
+  /// Page background behind the app shell.
   final Color background;
+
+  /// Default surface — the base for cards and navigation chrome.
   final Color surface;
-  final Color surfaceVariant;
+
+  final Color surfaceContainerLowest;
+  final Color surfaceContainerLow;
+  final Color surfaceContainer;
+  final Color surfaceContainerHigh;
+  final Color surfaceContainerHighest;
+
+  /// Maps to `onSurface`.
   final Color textPrimary;
+
+  /// Maps to `onSurfaceVariant`.
   final Color textSecondary;
-  final Color divider;
+
+  /// Important boundaries: text field borders, focus rings.
+  final Color outline;
+
+  /// Decorative separation: dividers, list separators.
+  final Color outlineVariant;
 
   static const ThemePalette lightFallback = ThemePalette(
     primary: Color(0xFF1A73E8),
@@ -96,10 +130,15 @@ class ThemePalette {
     onPrimaryContainer: Color(0xFF202124),
     background: Color(0xFFF8F9FA),
     surface: Color(0xFFFFFFFF),
-    surfaceVariant: Color(0xFFF1F3F4),
+    surfaceContainerLowest: Color(0xFFFFFFFF),
+    surfaceContainerLow: Color(0xFFFBFBFC),
+    surfaceContainer: Color(0xFFF5F6F7),
+    surfaceContainerHigh: Color(0xFFF1F3F4),
+    surfaceContainerHighest: Color(0xFFEBEDEF),
     textPrimary: Color(0xFF202124),
     textSecondary: Color(0xFF5F6368),
-    divider: Color(0xFFDADCE0),
+    outline: Color(0xFF9AA0A6),
+    outlineVariant: Color(0xFFDADCE0),
   );
 
   static const ThemePalette darkFallback = ThemePalette(
@@ -109,39 +148,55 @@ class ThemePalette {
     onPrimaryContainer: Color(0xFFE8EAED),
     background: Color(0xFF202124),
     surface: Color(0xFF292A2D),
-    surfaceVariant: Color(0xFF303134),
+    surfaceContainerLowest: Color(0xFF1B1C1E),
+    surfaceContainerLow: Color(0xFF242528),
+    surfaceContainer: Color(0xFF292A2D),
+    surfaceContainerHigh: Color(0xFF303134),
+    surfaceContainerHighest: Color(0xFF37383B),
     textPrimary: Color(0xFFE8EAED),
     textSecondary: Color(0xFFBDC1C6),
-    divider: Color(0xFF3C4043),
+    outline: Color(0xFF6E7378),
+    outlineVariant: Color(0xFF3C4043),
   );
 
   factory ThemePalette.fromJson(
     Map<String, dynamic> json, {
     required ThemePalette fallback,
   }) {
+    Color read(String key, Color fallbackColor) =>
+        parseConfigColor(json[key], fallbackColor);
+
     return ThemePalette(
-      primary: parseConfigColor(json['primary'], fallback.primary),
-      onPrimary: parseConfigColor(json['onPrimary'], fallback.onPrimary),
-      primaryContainer: parseConfigColor(
-        json['primaryContainer'],
-        fallback.primaryContainer,
-      ),
-      onPrimaryContainer: parseConfigColor(
-        json['onPrimaryContainer'],
+      primary: read('primary', fallback.primary),
+      onPrimary: read('onPrimary', fallback.onPrimary),
+      primaryContainer: read('primaryContainer', fallback.primaryContainer),
+      onPrimaryContainer: read(
+        'onPrimaryContainer',
         fallback.onPrimaryContainer,
       ),
-      background: parseConfigColor(json['background'], fallback.background),
-      surface: parseConfigColor(json['surface'], fallback.surface),
-      surfaceVariant: parseConfigColor(
-        json['surfaceVariant'],
-        fallback.surfaceVariant,
+      background: read('background', fallback.background),
+      surface: read('surface', fallback.surface),
+      surfaceContainerLowest: read(
+        'surfaceContainerLowest',
+        fallback.surfaceContainerLowest,
       ),
-      textPrimary: parseConfigColor(json['textPrimary'], fallback.textPrimary),
-      textSecondary: parseConfigColor(
-        json['textSecondary'],
-        fallback.textSecondary,
+      surfaceContainerLow: read(
+        'surfaceContainerLow',
+        fallback.surfaceContainerLow,
       ),
-      divider: parseConfigColor(json['divider'], fallback.divider),
+      surfaceContainer: read('surfaceContainer', fallback.surfaceContainer),
+      surfaceContainerHigh: read(
+        'surfaceContainerHigh',
+        fallback.surfaceContainerHigh,
+      ),
+      surfaceContainerHighest: read(
+        'surfaceContainerHighest',
+        fallback.surfaceContainerHighest,
+      ),
+      textPrimary: read('textPrimary', fallback.textPrimary),
+      textSecondary: read('textSecondary', fallback.textSecondary),
+      outline: read('outline', fallback.outline),
+      outlineVariant: read('outlineVariant', fallback.outlineVariant),
     );
   }
 
@@ -153,10 +208,15 @@ class ThemePalette {
       'onPrimaryContainer': configColorToHex(onPrimaryContainer),
       'background': configColorToHex(background),
       'surface': configColorToHex(surface),
-      'surfaceVariant': configColorToHex(surfaceVariant),
+      'surfaceContainerLowest': configColorToHex(surfaceContainerLowest),
+      'surfaceContainerLow': configColorToHex(surfaceContainerLow),
+      'surfaceContainer': configColorToHex(surfaceContainer),
+      'surfaceContainerHigh': configColorToHex(surfaceContainerHigh),
+      'surfaceContainerHighest': configColorToHex(surfaceContainerHighest),
       'textPrimary': configColorToHex(textPrimary),
       'textSecondary': configColorToHex(textSecondary),
-      'divider': configColorToHex(divider),
+      'outline': configColorToHex(outline),
+      'outlineVariant': configColorToHex(outlineVariant),
     };
   }
 }

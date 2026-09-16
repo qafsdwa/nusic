@@ -51,10 +51,15 @@ flutter:
       "onPrimaryContainer": "#202124",
       "background": "#F8F9FA",
       "surface": "#FFFFFF",
-      "surfaceVariant": "#F1F3F4",
+      "surfaceContainerLowest": "#FFFFFF",
+      "surfaceContainerLow": "#FBFBFC",
+      "surfaceContainer": "#F5F6F7",
+      "surfaceContainerHigh": "#F1F3F4",
+      "surfaceContainerHighest": "#EBEDEF",
       "textPrimary": "#202124",
       "textSecondary": "#5F6368",
-      "divider": "#DADCE0"
+      "outline": "#9AA0A6",
+      "outlineVariant": "#DADCE0"
     },
     "dark": {
       "primary": "#8AB4F8",
@@ -63,10 +68,15 @@ flutter:
       "onPrimaryContainer": "#E8EAED",
       "background": "#202124",
       "surface": "#292A2D",
-      "surfaceVariant": "#303134",
+      "surfaceContainerLowest": "#1B1C1E",
+      "surfaceContainerLow": "#242528",
+      "surfaceContainer": "#292A2D",
+      "surfaceContainerHigh": "#303134",
+      "surfaceContainerHighest": "#37383B",
       "textPrimary": "#E8EAED",
       "textSecondary": "#BDC1C6",
-      "divider": "#3C4043"
+      "outline": "#6E7378",
+      "outlineVariant": "#3C4043"
     },
     "glass": {
       "blur": 24,
@@ -198,10 +208,22 @@ flutter:
 | `onPrimaryContainer` | `colorScheme.onPrimaryContainer` | 主色容器上的内容 |
 | `background` | `scaffoldBackgroundColor` | 页面背景 |
 | `surface` | `colorScheme.surface` | 卡片 / 面板表面 |
-| `surfaceVariant` | `colorScheme.surfaceContainerHighest` | 搜索框、次级表面 |
+| `surfaceContainerLowest` | `colorScheme.surfaceContainerLowest` | tonal 色阶第 1 级（最低） |
+| `surfaceContainerLow` | `colorScheme.surfaceContainerLow` | tonal 色阶第 2 级 |
+| `surfaceContainer` | `colorScheme.surfaceContainer` | tonal 色阶第 3 级（导航区域默认） |
+| `surfaceContainerHigh` | `colorScheme.surfaceContainerHigh` | tonal 色阶第 4 级（输入框填充） |
+| `surfaceContainerHighest` | `colorScheme.surfaceContainerHighest` | tonal 色阶第 5 级（列表 hover） |
 | `textPrimary` | `colorScheme.onSurface` | 主文字 |
 | `textSecondary` | `colorScheme.onSurfaceVariant` | 次级文字 |
-| `divider` | `colorScheme.outline` / `outlineVariant` | 分割线与描边 |
+| `outline` | `colorScheme.outline` | **重要边界**：输入框描边、聚焦环 |
+| `outlineVariant` | `colorScheme.outlineVariant` | **装饰性分隔**：分割线、列表分隔 |
+
+> **`surfaceContainer*` 五级不要设成同一个值。** M3 用 tonal surface 而非阴影表达高度，
+> 五级塌陷成一级就等于失去了表达高度的唯一手段。
+>
+> **`outline` 与 `outlineVariant` 是不同角色。** 前者标记重要边界，后者是装饰分隔；
+> 合并后分割线与输入框描边无法区分。这两条都有回归测试守着，
+> 见 `test/accessibility_test.dart` 与 `test/app_config_test.dart`。
 
 `AppTheme` 不再硬编码颜色，而是从 `ThemeConfig` / `ThemePalette` 构建
 `ThemeData`。因此修改 `app_config.json` 即可切换主题模式与明暗色板。

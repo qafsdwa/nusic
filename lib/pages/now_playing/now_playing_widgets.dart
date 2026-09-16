@@ -2,6 +2,7 @@ import 'package:flutter/material.dart' hide RepeatMode;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/constants/app_sizes.dart';
+import '../../core/utils/motion.dart';
 import '../../models/song.dart';
 import '../../providers/player_provider.dart';
 import '../../widgets/common/cover_artwork.dart';
@@ -193,7 +194,7 @@ class NowPlayingTransportControls extends ConsumerWidget {
           ),
           tooltip: playerState.isPlaying ? '暂停' : '播放',
           icon: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 200),
+            duration: AppMotion.of(context, AppMotion.emphasized),
             transitionBuilder: (Widget child, Animation<double> animation) {
               return FadeTransition(opacity: animation, child: child);
             },
@@ -236,13 +237,14 @@ class NowPlayingTransportControls extends ConsumerWidget {
 class LyricsPanel extends StatelessWidget {
   const LyricsPanel({super.key});
 
-  static const List<Map<String, String>> _lines = <Map<String, String>>[
-    <String, String>{'text': '在音乐中遇见更好的自己', 'active': 'true'},
-    <String, String>{'text': 'Midnight Drive · 让夜色带你前行', 'active': 'false'},
-    <String, String>{'text': 'The Nights · 那些夜晚值得铭记', 'active': 'false'},
-    <String, String>{'text': 'Fix You · 总有一束光为你而来', 'active': 'false'},
-    <String, String>{'text': 'Lemon · 酸涩之后，仍有回甘', 'active': 'false'},
-  ];
+  static const List<({String text, bool active})> _lines =
+      <({String text, bool active})>[
+        (text: '在音乐中遇见更好的自己', active: true),
+        (text: 'Midnight Drive · 让夜色带你前行', active: false),
+        (text: 'The Nights · 那些夜晚值得铭记', active: false),
+        (text: 'Fix You · 总有一束光为你而来', active: false),
+        (text: 'Lemon · 酸涩之后，仍有回甘', active: false),
+      ];
 
   @override
   Widget build(BuildContext context) {
@@ -254,15 +256,15 @@ class LyricsPanel extends StatelessWidget {
       padding: const EdgeInsets.all(AppSizes.spacingLg),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppSizes.shapeLgIncreased),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          for (final Map<String, String> line in _lines) ...<Widget>[
+          for (final ({String text, bool active}) line in _lines) ...<Widget>[
             Text(
-              line['text']!,
-              style: line['active'] == 'true'
+              line.text,
+              style: line.active
                   ? theme.textTheme.bodyLarge?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: theme.colorScheme.onSurface,

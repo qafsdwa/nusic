@@ -24,10 +24,15 @@
       "onPrimaryContainer": "#202124",
       "background": "#F8F9FA",
       "surface": "#FFFFFF",
-      "surfaceVariant": "#F1F3F4",
+      "surfaceContainerLowest": "#FFFFFF",
+      "surfaceContainerLow": "#FBFBFC",
+      "surfaceContainer": "#F5F6F7",
+      "surfaceContainerHigh": "#F1F3F4",
+      "surfaceContainerHighest": "#EBEDEF",
       "textPrimary": "#202124",
       "textSecondary": "#5F6368",
-      "divider": "#DADCE0"
+      "outline": "#9AA0A6",
+      "outlineVariant": "#DADCE0"
     },
     "dark": {
       "primary": "#8AB4F8",
@@ -36,10 +41,15 @@
       "onPrimaryContainer": "#E8EAED",
       "background": "#202124",
       "surface": "#292A2D",
-      "surfaceVariant": "#303134",
+      "surfaceContainerLowest": "#1B1C1E",
+      "surfaceContainerLow": "#242528",
+      "surfaceContainer": "#292A2D",
+      "surfaceContainerHigh": "#303134",
+      "surfaceContainerHighest": "#37383B",
       "textPrimary": "#E8EAED",
       "textSecondary": "#BDC1C6",
-      "divider": "#3C4043"
+      "outline": "#6E7378",
+      "outlineVariant": "#3C4043"
     },
     "glass": {
       "blur": 24,

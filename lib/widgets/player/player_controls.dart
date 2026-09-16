@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../core/utils/motion.dart';
+
 /// Transport controls for the floating player bar.
 ///
 /// Play / Pause is the visual center and uses an animated icon switch so the
@@ -12,7 +14,6 @@ class PlayerBarControls extends StatelessWidget {
     required this.onTogglePlayPause,
     required this.onNext,
     this.showVolume = false,
-    this.showQueue = false,
     this.volume = 0.7,
     this.onVolumeChanged,
   });
@@ -22,7 +23,6 @@ class PlayerBarControls extends StatelessWidget {
   final VoidCallback onTogglePlayPause;
   final VoidCallback onNext;
   final bool showVolume;
-  final bool showQueue;
   final double volume;
   final ValueChanged<double>? onVolumeChanged;
 
@@ -47,7 +47,7 @@ class PlayerBarControls extends StatelessWidget {
           ),
           tooltip: isPlaying ? '暂停' : '播放',
           icon: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 180),
+            duration: AppMotion.of(context, AppMotion.standard),
             transitionBuilder: (Widget child, Animation<double> animation) {
               return FadeTransition(opacity: animation, child: child);
             },
@@ -84,14 +84,6 @@ class PlayerBarControls extends StatelessWidget {
                 ),
               ],
             ),
-          ),
-        ],
-        if (showQueue) ...<Widget>[
-          const SizedBox(width: 2),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.queue_music),
-            tooltip: '播放队列',
           ),
         ],
       ],

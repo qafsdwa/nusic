@@ -89,7 +89,7 @@ class PlayerProgressLine extends StatelessWidget {
     return LinearProgressIndicator(
       value: value,
       minHeight: minHeight,
-      borderRadius: BorderRadius.circular(2),
+      borderRadius: BorderRadius.circular(AppSizes.shapeFull),
     );
   }
 }

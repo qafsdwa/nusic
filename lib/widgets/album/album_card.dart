@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/constants/app_sizes.dart';
+import '../../core/utils/motion.dart';
 import '../../models/album.dart';
 import '../common/cover_artwork.dart';
 
@@ -27,19 +28,23 @@ class _AlbumCardState extends State<AlbumCard> {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
+    // A card with no destination must not pretend to be a button: no hover
+    // lift, no ripple, no pointer cursor.
+    final bool interactive = widget.onTap != null;
 
     return SizedBox(
       width: widget.width,
       child: MouseRegion(
-        onEnter: (_) => setState(() => _hovered = true),
-        onExit: (_) => setState(() => _hovered = false),
+        cursor: interactive ? SystemMouseCursors.click : MouseCursor.defer,
+        onEnter: interactive ? (_) => setState(() => _hovered = true) : null,
+        onExit: interactive ? (_) => setState(() => _hovered = false) : null,
         child: AnimatedScale(
-          scale: _hovered ? 1.02 : 1.0,
-          duration: const Duration(milliseconds: 170),
+          scale: interactive && _hovered ? 1.02 : 1.0,
+          duration: AppMotion.of(context, AppMotion.fast),
           curve: Curves.easeOut,
           child: InkWell(
             onTap: widget.onTap,
-            borderRadius: BorderRadius.circular(AppSizes.albumCardRadius),
+            borderRadius: BorderRadius.circular(AppSizes.shapeLg),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
@@ -47,7 +52,7 @@ class _AlbumCardState extends State<AlbumCard> {
                   title: widget.album.title,
                   coverKey: widget.album.cover,
                   size: widget.width,
-                  borderRadius: AppSizes.albumCardRadius,
+                  borderRadius: AppSizes.shapeLg,
                 ),
                 const SizedBox(height: 8),
                 Text(

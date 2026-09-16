@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/constants/app_sizes.dart';
 import '../../providers/theme_mode_provider.dart';
+import '../../widgets/common/list_card.dart';
+import '../../widgets/common/page_scaffold.dart';
+import '../../widgets/common/section_header.dart';
 
 /// Settings page.
 ///
@@ -16,63 +19,49 @@ class SettingsPage extends ConsumerWidget {
     final ThemeData theme = Theme.of(context);
     final ThemeMode mode = ref.watch(themeModeProvider);
 
-    return Align(
-      alignment: Alignment.topCenter,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: AppSizes.pageMaxWidth),
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(
-            AppSizes.spacingLg,
-            AppSizes.spacingLg,
-            AppSizes.spacingLg,
-            AppSizes.scrollBottomPadding,
-          ),
+    return PageScaffold(
+      maxWidth: AppSizes.pageMaxWidthText,
+      children: <Widget>[
+        const SectionHeader(title: '设置', size: SectionHeaderSize.page),
+        const SizedBox(height: AppSizes.spacingLg),
+        ListCard(
           children: <Widget>[
-            Text(
-              '设置',
-              style: theme.textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.w700,
+            ListTile(
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: AppSizes.spacingLg,
+                vertical: AppSizes.spacingSm,
               ),
-            ),
-            const SizedBox(height: AppSizes.spacingLg),
-            Card(
-              margin: EdgeInsets.zero,
-              child: ListTile(
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: AppSizes.spacingLg,
-                  vertical: AppSizes.spacingSm,
-                ),
-                leading: Icon(
-                  _iconForMode(mode),
-                  color: theme.colorScheme.primary,
-                ),
-                title: const Text('主题'),
-                subtitle: Text(_descriptionForMode(mode)),
-                trailing: FilledButton.tonalIcon(
-                  onPressed: () {
-                    ref.read(themeModeProvider.notifier).cycle();
-                  },
-                  icon: const Icon(Icons.swap_horiz),
-                  label: Text(_buttonLabelForMode(mode)),
-                ),
+              leading: Icon(
+                _iconForMode(mode),
+                color: theme.colorScheme.primary,
               ),
-            ),
-            const SizedBox(height: AppSizes.spacingMd),
-            Card(
-              margin: EdgeInsets.zero,
-              child: const ListTile(
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: AppSizes.spacingLg,
-                  vertical: AppSizes.spacingSm,
-                ),
-                leading: Icon(Icons.info_outline),
-                title: Text('关于'),
-                subtitle: Text('Muse Player · Phase 1 Mock UI'),
+              title: const Text('主题'),
+              subtitle: Text(_descriptionForMode(mode)),
+              trailing: FilledButton.tonalIcon(
+                onPressed: () {
+                  ref.read(themeModeProvider.notifier).cycle();
+                },
+                icon: const Icon(Icons.swap_horiz),
+                label: Text(_buttonLabelForMode(mode)),
               ),
             ),
           ],
         ),
-      ),
+        const SizedBox(height: AppSizes.spacingMd),
+        const ListCard(
+          children: <Widget>[
+            ListTile(
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: AppSizes.spacingLg,
+                vertical: AppSizes.spacingSm,
+              ),
+              leading: Icon(Icons.info_outline),
+              title: Text('关于'),
+              subtitle: Text('Muse Player · Phase 1 Mock UI'),
+            ),
+          ],
+        ),
+      ],
     );
   }
 

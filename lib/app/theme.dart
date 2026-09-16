@@ -43,11 +43,18 @@ abstract final class AppTheme {
           onPrimaryContainer: palette.onPrimaryContainer,
           surface: palette.surface,
           onSurface: palette.textPrimary,
-          surfaceContainerHighest: palette.surfaceVariant,
-          surfaceContainerHigh: palette.surfaceVariant,
+          // The five tonal container steps are mapped individually. M3 signals
+          // elevation through tonal surface colour, not shadows, so collapsing
+          // these into one value removes the only means of expressing depth.
+          surfaceContainerLowest: palette.surfaceContainerLowest,
+          surfaceContainerLow: palette.surfaceContainerLow,
+          surfaceContainer: palette.surfaceContainer,
+          surfaceContainerHigh: palette.surfaceContainerHigh,
+          surfaceContainerHighest: palette.surfaceContainerHighest,
           onSurfaceVariant: palette.textSecondary,
-          outline: palette.divider,
-          outlineVariant: palette.divider,
+          // `outline` and `outlineVariant` are distinct roles on purpose.
+          outline: palette.outline,
+          outlineVariant: palette.outlineVariant,
         );
 
     return ThemeData(
@@ -65,7 +72,9 @@ abstract final class AppTheme {
         elevation: 0,
         color: palette.surface,
         surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppSizes.shapeLg),
+        ),
       ),
       navigationRailTheme: NavigationRailThemeData(
         backgroundColor: Colors.transparent,
@@ -85,7 +94,7 @@ abstract final class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: palette.surfaceVariant,
+        fillColor: palette.surfaceContainerHigh,
         hintStyle: TextStyle(color: palette.textSecondary),
         prefixIconColor: palette.textSecondary,
         suffixIconColor: palette.textSecondary,
@@ -94,21 +103,24 @@ abstract final class AppTheme {
           vertical: 12,
         ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(24),
+          // The search field is a search bar, so M3 gives it the `full` shape.
+          borderRadius: BorderRadius.circular(AppSizes.shapeFull),
           borderSide: BorderSide.none,
         ),
       ),
       sliderTheme: SliderThemeData(
         trackHeight: 2,
         activeTrackColor: palette.primary,
-        inactiveTrackColor: palette.divider,
+        inactiveTrackColor: palette.outlineVariant,
         thumbColor: palette.primary,
         thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5),
         overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
         overlayColor: palette.primary.withValues(alpha: 0.12),
       ),
       dividerTheme: DividerThemeData(
-        color: palette.divider,
+        // Dividers are decorative, so they take `outlineVariant`, never
+        // `outline`.
+        color: palette.outlineVariant,
         thickness: 1,
         space: 1,
       ),

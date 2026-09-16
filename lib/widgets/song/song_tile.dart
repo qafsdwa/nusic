@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/constants/app_sizes.dart';
 import '../../core/utils/formatters.dart';
 import '../../models/song.dart';
 import '../../providers/player_provider.dart';
@@ -28,8 +29,16 @@ class SongTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ThemeData theme = Theme.of(context);
-    final PlayerState playerState = ref.watch(playerProvider);
-    final bool isCurrentSong = playerState.currentSong?.id == song.id;
+
+    // Only the current song id and the play state affect this row. Watching the
+    // whole [PlayerState] would rebuild every tile in the list on each position
+    // tick once a real audio engine starts driving progress.
+    final (String? currentSongId, bool isPlaying) = ref.watch(
+      playerProvider.select(
+        (PlayerState state) => (state.currentSong?.id, state.isPlaying),
+      ),
+    );
+    final bool isCurrentSong = currentSongId == song.id;
     final String subtitle = showAlbum
         ? '${song.artist} · ${song.album}'
         : song.artist;
@@ -44,15 +53,17 @@ class SongTile extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           if (isCurrentSong) ...<Widget>[
-            Container(
-              width: 3,
-              height: 36,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primary,
-                borderRadius: BorderRadius.circular(2),
-              ),
+            // A shape, not just a colour. Tinting the row alone would leave
+            // colour as the only cue for "this is the current track", which
+            // fails WCAG 1.4.1 and is the single most important state in a
+            // music player.
+            Icon(
+              isPlaying ? Icons.graphic_eq_rounded : Icons.pause_rounded,
+              size: 18,
+              color: theme.colorScheme.primary,
+              semanticLabel: isPlaying ? '正在播放' : '已暂停',
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: AppSizes.spacingSm),
           ],
           CoverArtwork(
             title: song.title,
@@ -93,7 +104,9 @@ class SongTile extends ConsumerWidget {
           ],
         ),
       ),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppSizes.shapeMd),
+      ),
       onTap: onTap,
     );
   }

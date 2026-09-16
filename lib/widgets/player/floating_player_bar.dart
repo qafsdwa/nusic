@@ -102,7 +102,7 @@ class FloatingPlayerBar extends ConsumerWidget {
                   isPlaying: state.isPlaying,
                   progress: state.position,
                   duration: state.duration,
-                  isDesktop: constraints.maxWidth > AppBreakpoints.tabletMax,
+                  isDesktop: constraints.maxWidth >= AppBreakpoints.desktopMin,
                   volume: state.volume,
                   onTogglePlayPause: ref
                       .read(playerProvider.notifier)

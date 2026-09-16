@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/constants/app_sizes.dart';
+import '../../core/utils/motion.dart';
 import '../../models/song.dart';
 import '../common/cover_artwork.dart';
 import 'player_controls.dart';
@@ -63,7 +64,6 @@ class DesktopFloatingPlayerBar extends StatelessWidget {
             onTogglePlayPause: onTogglePlayPause,
             onNext: onNext,
             showVolume: isDesktop,
-            showQueue: true,
             volume: volume,
             onVolumeChanged: onVolumeChanged,
           ),
@@ -216,12 +216,14 @@ class MobilePlayButton extends StatelessWidget {
       iconSize: 28,
       padding: const EdgeInsets.all(10),
       style: IconButton.styleFrom(
-        minimumSize: const Size(44, 44),
+        // M3 minimum touch target is 48dp. This is the primary action on
+        // mobile, so it must not shrink below it.
+        minimumSize: const Size(48, 48),
         shape: const CircleBorder(),
       ),
       tooltip: isPlaying ? '暂停' : '播放',
       icon: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 180),
+        duration: AppMotion.of(context, AppMotion.standard),
         transitionBuilder: (Widget child, Animation<double> animation) {
           return FadeTransition(opacity: animation, child: child);
         },

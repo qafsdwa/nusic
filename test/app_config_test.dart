@@ -35,10 +35,15 @@ void main() {
           'onPrimaryContainer': '#202124',
           'background': '#F8F9FA',
           'surface': '#FFFFFF',
-          'surfaceVariant': '#F1F3F4',
+          'surfaceContainerLowest': '#FFFFFF',
+          'surfaceContainerLow': '#FBFBFC',
+          'surfaceContainer': '#F5F6F7',
+          'surfaceContainerHigh': '#F1F3F4',
+          'surfaceContainerHighest': '#EBEDEF',
           'textPrimary': '#202124',
           'textSecondary': '#5F6368',
-          'divider': '#DADCE0',
+          'outline': '#9AA0A6',
+          'outlineVariant': '#DADCE0',
         },
         'dark': <String, dynamic>{
           'primary': '#AABBCC',
@@ -47,10 +52,15 @@ void main() {
           'onPrimaryContainer': '#E8EAED',
           'background': '#202124',
           'surface': '#292A2D',
-          'surfaceVariant': '#303134',
+          'surfaceContainerLowest': '#1B1C1E',
+          'surfaceContainerLow': '#242528',
+          'surfaceContainer': '#292A2D',
+          'surfaceContainerHigh': '#303134',
+          'surfaceContainerHighest': '#37383B',
           'textPrimary': '#E8EAED',
           'textSecondary': '#BDC1C6',
-          'divider': '#3C4043',
+          'outline': '#6E7378',
+          'outlineVariant': '#3C4043',
         },
         'glass': <String, dynamic>{
           'blur': 30,
@@ -106,6 +116,18 @@ void main() {
     expect(config.theme.mode, 'dark');
     expect(config.theme.light.primary, const Color(0xFF112233));
     expect(config.theme.dark.primary, const Color(0xFFAABBCC));
+    expect(config.theme.light.outline, const Color(0xFF9AA0A6));
+    expect(config.theme.light.outlineVariant, const Color(0xFFDADCE0));
+    expect(
+      config.theme.light.outline,
+      isNot(config.theme.light.outlineVariant),
+      reason: 'outline and outlineVariant are separate M3 roles',
+    );
+    expect(
+      config.theme.light.surfaceContainerHighest,
+      isNot(config.theme.light.surfaceContainerHigh),
+      reason: 'the tonal surface ramp must not collapse into one value',
+    );
     expect(config.theme.glass.blur, 30);
     expect(config.theme.glass.borderWidth, 2);
     expect(config.theme.glass.light.surfaceStartOpacity, 0.8);

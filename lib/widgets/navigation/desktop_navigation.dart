@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/constants/app_section.dart';
 import '../../core/constants/app_sizes.dart';
+import '../../core/utils/motion.dart';
 
 IconData _iconFor(AppSection section, {required bool selected}) {
   return switch (section) {
@@ -88,8 +89,17 @@ class DesktopNavigationPanel extends StatelessWidget {
                   },
                 ),
               ),
+              // The floating player bar spans the full window width (it is
+              // positioned `left: 24, right: 24` over the whole shell), so the
+              // panel's footer needs the same bottom clearance the scrollable
+              // pages reserve. Without it the bar sits on top of this label.
               Padding(
-                padding: const EdgeInsets.all(AppSizes.spacingMd),
+                padding: const EdgeInsets.fromLTRB(
+                  AppSizes.spacingMd,
+                  AppSizes.spacingMd,
+                  AppSizes.spacingMd,
+                  AppSizes.scrollBottomPadding,
+                ),
                 child: Text(
                   'Phase 1 · Mock UI',
                   style: theme.textTheme.labelSmall?.copyWith(
@@ -127,9 +137,9 @@ class _DesktopNavigationItem extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(AppSizes.shapeLg),
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
+          duration: AppMotion.of(context, AppMotion.standard),
           curve: Curves.easeOut,
           height: 48,
           padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -137,7 +147,7 @@ class _DesktopNavigationItem extends StatelessWidget {
             color: selected
                 ? theme.colorScheme.primaryContainer
                 : Colors.transparent,
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(AppSizes.shapeLg),
           ),
           child: Row(
             children: <Widget>[

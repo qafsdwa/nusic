@@ -4,8 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/config/app_config.dart';
 import '../core/config/app_config_provider.dart';
-import '../core/window/window_setup.dart';
+import '../core/constants/app_section.dart';
 import '../core/constants/app_sizes.dart';
+import '../core/window/window_setup.dart';
 import '../pages/home/home_page.dart';
 import '../pages/library/library_page.dart';
 import '../pages/playlist/playlist_page.dart';
@@ -14,10 +15,10 @@ import '../pages/settings/settings_page.dart';
 import '../providers/navigation_provider.dart';
 import '../providers/theme_mode_provider.dart';
 import '../widgets/common/placeholder_page.dart';
+import '../widgets/common/responsive_layout.dart';
 import '../widgets/navigation/desktop_navigation.dart';
-import '../widgets/window/custom_title_bar.dart';
 import '../widgets/player/floating_player_bar.dart';
-import 'breakpoints.dart';
+import '../widgets/window/custom_title_bar.dart';
 import 'router.dart';
 import 'theme.dart';
 
@@ -65,19 +66,19 @@ class MuseApp extends ConsumerWidget {
 ///
 /// The floating player bar is always rendered inside a [Stack] as a true
 /// floating surface — never as a footer or a `bottomNavigationBar`.
+///
+/// Shell selection goes through [ResponsiveLayout] so the window size classes
+/// live in exactly one place (`AppBreakpoints`).
 class MainShell extends ConsumerWidget {
   const MainShell({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final int selectedIndex = ref.watch(navigationProvider);
+    final NavigationNotifier navigation = ref.read(navigationProvider.notifier);
 
     final List<Widget> pages = <Widget>[
-      HomePage(
-        onSearchTap: () {
-          ref.read(navigationProvider.notifier).select(1);
-        },
-      ),
+      HomePage(onSearchTap: () => navigation.select(AppSection.search.index)),
       const SearchPage(),
       const LibraryPage(),
       const PlaceholderPage(
@@ -99,108 +100,110 @@ class MainShell extends ConsumerWidget {
             child: SafeArea(
               top: !isDesktopPlatform,
               bottom: false,
-              child: LayoutBuilder(
-                builder: (BuildContext context, BoxConstraints constraints) {
-                  final AppBreakpoint breakpoint = AppBreakpoints.fromWidth(
-                    constraints.maxWidth,
-                  );
-
-                  return switch (breakpoint) {
-                    AppBreakpoint.desktop => Stack(
-                      children: <Widget>[
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: <Widget>[
-                            DesktopNavigationPanel(
-                              selectedIndex: selectedIndex,
-                              onDestinationSelected: (int index) {
-                                ref
-                                    .read(navigationProvider.notifier)
-                                    .select(index);
-                              },
-                            ),
-                            VerticalDivider(
-                              width: 1,
-                              thickness: 1,
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .outlineVariant,
-                            ),
-                            Expanded(child: content),
-                          ],
-                        ),
-                        const Positioned(
-                          left: AppSizes.floatingPlayerBarHorizontalMargin,
-                          right: AppSizes.floatingPlayerBarHorizontalMargin,
-                          bottom: AppSizes.floatingPlayerBarBottom,
-                          child: FloatingPlayerBar(),
-                        ),
-                      ],
-                    ),
-                    AppBreakpoint.tablet => Stack(
-                      children: <Widget>[
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: <Widget>[
-                            MuseNavigationRail(
-                              selectedIndex: selectedIndex,
-                              onDestinationSelected: (int index) {
-                                ref
-                                    .read(navigationProvider.notifier)
-                                    .select(index);
-                              },
-                            ),
-                            VerticalDivider(
-                              width: 1,
-                              thickness: 1,
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .outlineVariant,
-                            ),
-                            Expanded(child: content),
-                          ],
-                        ),
-                        const Positioned(
-                          left: AppSizes.floatingPlayerBarHorizontalMargin,
-                          right: AppSizes.floatingPlayerBarHorizontalMargin,
-                          bottom: AppSizes.floatingPlayerBarBottom,
-                          child: FloatingPlayerBar(),
-                        ),
-                      ],
-                    ),
-                    AppBreakpoint.mobile => Stack(
-                      children: <Widget>[
-                        Column(
-                          children: <Widget>[
-                            Expanded(child: content),
-                            MuseBottomNavigationBar(
-                              selectedIndex: selectedIndex,
-                              onDestinationSelected: (int index) {
-                                ref
-                                    .read(navigationProvider.notifier)
-                                    .select(index);
-                              },
-                            ),
-                          ],
-                        ),
-                        Positioned(
-                          left: AppSizes.floatingPlayerBarHorizontalMargin,
-                          right: AppSizes.floatingPlayerBarHorizontalMargin,
-                          bottom:
-                              AppSizes.navigationBarHeight +
-                              MediaQuery.paddingOf(context).bottom +
-                              AppSizes.spacingSm,
-                          child: const FloatingPlayerBar(),
-                        ),
-                      ],
-                    ),
-                  };
-                },
+              child: ResponsiveLayout(
+                // `large` + `extra-large`: permanent navigation panel.
+                desktop: _SideNavigationShell(
+                  navigation: DesktopNavigationPanel(
+                    selectedIndex: selectedIndex,
+                    onDestinationSelected: navigation.select,
+                  ),
+                  content: content,
+                ),
+                // `medium` + `expanded`: navigation rail.
+                tablet: _SideNavigationShell(
+                  navigation: MuseNavigationRail(
+                    selectedIndex: selectedIndex,
+                    onDestinationSelected: navigation.select,
+                  ),
+                  content: content,
+                ),
+                // `compact`: bottom navigation.
+                mobile: _BottomNavigationShell(
+                  selectedIndex: selectedIndex,
+                  onDestinationSelected: navigation.select,
+                  content: content,
+                ),
               ),
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Side navigation (panel or rail) with the floating player bar over the
+/// content. Shared by the desktop and tablet shells, which differ only in which
+/// navigation widget they render.
+class _SideNavigationShell extends StatelessWidget {
+  const _SideNavigationShell({required this.navigation, required this.content});
+
+  final Widget navigation;
+  final Widget content;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: <Widget>[
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            navigation,
+            VerticalDivider(
+              width: 1,
+              thickness: 1,
+              color: Theme.of(context).colorScheme.outlineVariant,
+            ),
+            Expanded(child: content),
+          ],
+        ),
+        const Positioned(
+          left: AppSizes.floatingPlayerBarHorizontalMargin,
+          right: AppSizes.floatingPlayerBarHorizontalMargin,
+          bottom: AppSizes.floatingPlayerBarBottom,
+          child: FloatingPlayerBar(),
+        ),
+      ],
+    );
+  }
+}
+
+/// Bottom navigation with the floating player bar lifted clear of the bar and
+/// the system inset.
+class _BottomNavigationShell extends StatelessWidget {
+  const _BottomNavigationShell({
+    required this.selectedIndex,
+    required this.onDestinationSelected,
+    required this.content,
+  });
+
+  final int selectedIndex;
+  final ValueChanged<int> onDestinationSelected;
+  final Widget content;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: <Widget>[
+        Column(
+          children: <Widget>[
+            Expanded(child: content),
+            MuseBottomNavigationBar(
+              selectedIndex: selectedIndex,
+              onDestinationSelected: onDestinationSelected,
+            ),
+          ],
+        ),
+        Positioned(
+          left: AppSizes.floatingPlayerBarHorizontalMargin,
+          right: AppSizes.floatingPlayerBarHorizontalMargin,
+          bottom:
+              AppSizes.navigationBarHeight +
+              MediaQuery.paddingOf(context).bottom +
+              AppSizes.spacingSm,
+          child: const FloatingPlayerBar(),
+        ),
+      ],
     );
   }
 }

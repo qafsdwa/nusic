@@ -5,6 +5,8 @@ import '../../core/constants/app_sizes.dart';
 import '../../mock/mock_music.dart';
 import '../../models/song.dart';
 import '../../providers/player_provider.dart';
+import '../../widgets/common/page_scaffold.dart';
+import '../../widgets/common/section_header.dart';
 import '../../widgets/song/song_tile.dart';
 
 /// Search page with local, incremental filtering over [MockMusic.songs].
@@ -44,25 +46,19 @@ class _SearchPageState extends ConsumerState<SearchPage> {
 
   @override
   Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
     final List<Song> results = _filteredSongs;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
+        const Padding(
+          padding: EdgeInsets.fromLTRB(
             AppSizes.spacingLg,
             AppSizes.spacingLg,
             AppSizes.spacingLg,
             AppSizes.spacingSm,
           ),
-          child: Text(
-            '搜索',
-            style: theme.textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
-          ),
+          child: SectionHeader(title: '搜索', size: SectionHeaderSize.page),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSizes.spacingLg),
@@ -98,51 +94,35 @@ class _SearchPageState extends ConsumerState<SearchPage> {
           ),
         ),
         const SizedBox(height: AppSizes.spacingMd),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSizes.spacingLg),
-          child: Text(
-            '歌曲',
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
-          ),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: AppSizes.spacingLg),
+          child: SectionHeader(title: '歌曲', size: SectionHeaderSize.subsection),
         ),
         const SizedBox(height: AppSizes.spacingSm),
         Expanded(
-          child: Align(
-            alignment: Alignment.topCenter,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(
-                maxWidth: AppSizes.pageMaxWidth,
-              ),
-              child: results.isEmpty
-                  ? const _EmptySearchResult()
-                  : ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(
-                        AppSizes.spacingMd,
-                        0,
-                        AppSizes.spacingMd,
-                        AppSizes.scrollBottomPadding,
-                      ),
-                      itemCount: results.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        final Song song = results[index];
-                        return SongTile(
-                          song: song,
-                          showAlbum: true,
-                          onTap: () {
-                            ref.read(playerProvider.notifier).play(song);
-                          },
-                          onAction: (SongAction action) {
-                            if (action == SongAction.play) {
-                              ref.read(playerProvider.notifier).play(song);
-                            }
-                          },
-                        );
+          child: results.isEmpty
+              ? const _EmptySearchResult()
+              : PageScaffold.builder(
+                  horizontalPadding: AppSizes.spacingMd,
+                  topPadding: 0,
+                  maxWidth: AppSizes.pageMaxWidthText,
+                  itemCount: results.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    final Song song = results[index];
+                    return SongTile(
+                      song: song,
+                      showAlbum: true,
+                      onTap: () {
+                        ref.read(playerProvider.notifier).play(song);
                       },
-                    ),
-            ),
-          ),
+                      onAction: (SongAction action) {
+                        if (action == SongAction.play) {
+                          ref.read(playerProvider.notifier).play(song);
+                        }
+                      },
+                    );
+                  },
+                ),
         ),
       ],
     );

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../app/breakpoints.dart';
 import '../../core/constants/app_sizes.dart';
 import '../../core/utils/formatters.dart';
+import '../../core/utils/motion.dart';
 import '../../models/playlist.dart';
 import '../../models/song.dart';
 import '../../widgets/common/cover_artwork.dart';
@@ -26,12 +28,13 @@ class HomeHeroCard extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
-        final bool compact = constraints.maxWidth < 480;
+        final bool compact =
+            constraints.maxWidth < AppBreakpoints.heroCompactMax;
         return Container(
           height: compact ? 200 : 240,
           clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(AppSizes.shapeXl),
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -87,33 +90,6 @@ class HomeHeroCard extends StatelessWidget {
   }
 }
 
-/// Small section title with an optional trailing action.
-class HomeSectionHeader extends StatelessWidget {
-  const HomeSectionHeader({super.key, required this.title, this.onMoreTap});
-
-  final String title;
-  final VoidCallback? onMoreTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    return Row(
-      children: <Widget>[
-        Expanded(
-          child: Text(
-            title,
-            style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-        if (onMoreTap != null)
-          TextButton(onPressed: onMoreTap, child: const Text('更多')),
-      ],
-    );
-  }
-}
-
 /// Horizontal "recently played" song card with soft hover scale.
 class RecentSongCard extends StatefulWidget {
   const RecentSongCard({super.key, required this.song, required this.onTap});
@@ -139,11 +115,11 @@ class _RecentSongCardState extends State<RecentSongCard> {
         onExit: (_) => setState(() => _hovered = false),
         child: AnimatedScale(
           scale: _hovered ? 1.02 : 1.0,
-          duration: const Duration(milliseconds: 170),
+          duration: AppMotion.of(context, AppMotion.fast),
           curve: Curves.easeOut,
           child: InkWell(
             onTap: widget.onTap,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppSizes.shapeLg),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
@@ -189,9 +165,13 @@ class _RecentSongCardState extends State<RecentSongCard> {
 
 /// Horizontal playlist card used by the "recommended playlist" rail.
 class PlaylistCard extends StatelessWidget {
-  const PlaylistCard({super.key, required this.playlist});
+  const PlaylistCard({super.key, required this.playlist, this.onTap});
 
   final Playlist playlist;
+
+  /// Opens the playlist. `null` renders the card as non-interactive rather than
+  /// as a button that silently does nothing.
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -200,8 +180,8 @@ class PlaylistCard extends StatelessWidget {
     return SizedBox(
       width: 160,
       child: InkWell(
-        onTap: () {},
-        borderRadius: BorderRadius.circular(16),
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppSizes.shapeLg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
