@@ -20,6 +20,24 @@ void main() {
     expect(find.byType(NavigationBar), findsNothing);
   });
 
+  testWidgets('Muse Player renders tablet navigation rail', (
+    WidgetTester tester,
+  ) async {
+    // 900 sits in M3 `medium`/`expanded` territory — the range the shell now
+    // maps to the rail. It used to fall through to the desktop panel.
+    await tester.binding.setSurfaceSize(const Size(900, 800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(const ProviderScope(child: MuseApp()));
+    await tester.pumpAndSettle();
+
+    expect(find.text('首页'), findsWidgets);
+    expect(find.byType(MuseNavigationRail), findsOneWidget);
+    expect(find.byType(DesktopNavigationPanel), findsNothing);
+    expect(find.byType(NavigationBar), findsNothing);
+    expect(find.byType(FloatingPlayerBar), findsOneWidget);
+  });
+
   testWidgets('Muse Player renders mobile bottom navigation', (
     WidgetTester tester,
   ) async {
