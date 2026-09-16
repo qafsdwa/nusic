@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/breakpoints.dart';
+import '../../core/config/app_config_provider.dart';
+import '../../core/config/hero_gradient_config.dart';
 import '../../core/constants/app_sizes.dart';
 import '../../core/utils/formatters.dart';
 import '../../core/utils/motion.dart';
@@ -9,22 +12,23 @@ import '../../models/song.dart';
 import '../../widgets/common/cover_artwork.dart';
 
 /// Large horizontal recommendation card with a soft blue-purple-pink wash.
-class HomeHeroCard extends StatelessWidget {
+///
+/// The wash comes from `theme.heroGradient` in `app_config.json` rather than
+/// from a hardcoded list, so the palette can be retuned without a code change.
+class HomeHeroCard extends ConsumerWidget {
   const HomeHeroCard({super.key, required this.onPlayRecommended});
 
   final VoidCallback onPlayRecommended;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final ThemeData theme = Theme.of(context);
     final bool isDark = theme.brightness == Brightness.dark;
-    final List<Color> colors = isDark
-        ? const <Color>[Color(0xFF1F2A44), Color(0xFF2E2344), Color(0xFF3E2135)]
-        : const <Color>[
-            Color(0xFFDCE7FB),
-            Color(0xFFE8E0FB),
-            Color(0xFFFBE3EE),
-          ];
+    final HeroGradientConfig hero = ref
+        .watch(appConfigProvider)
+        .theme
+        .heroGradient;
+    final List<Color> colors = isDark ? hero.dark : hero.light;
 
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {

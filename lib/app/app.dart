@@ -10,7 +10,6 @@ import '../core/window/window_setup.dart';
 import '../pages/home/home_page.dart';
 import '../pages/library/library_page.dart';
 import '../pages/playlist/playlist_page.dart';
-import '../pages/search/search_page.dart';
 import '../pages/settings/settings_page.dart';
 import '../providers/navigation_provider.dart';
 import '../providers/theme_mode_provider.dart';
@@ -77,17 +76,22 @@ class MainShell extends ConsumerWidget {
     final int selectedIndex = ref.watch(navigationProvider);
     final NavigationNotifier navigation = ref.read(navigationProvider.notifier);
 
+    // Built by iterating [AppSection.values] so the page order can never drift
+    // out of sync with the navigation order — and so adding a section is a
+    // compile error until it has a page.
     final List<Widget> pages = <Widget>[
-      HomePage(onSearchTap: () => navigation.select(AppSection.search.index)),
-      const SearchPage(),
-      const LibraryPage(),
-      const PlaceholderPage(
-        title: '收藏',
-        icon: Icons.favorite_outline,
-        description: '收藏的歌曲和专辑将在这里显示，等待 Rust 后端接入。',
-      ),
-      const PlaylistPage(),
-      const SettingsPage(),
+      for (final AppSection section in AppSection.values)
+        switch (section) {
+          AppSection.home => const HomePage(),
+          AppSection.library => const LibraryPage(),
+          AppSection.favorites => const PlaceholderPage(
+            title: '收藏',
+            icon: Icons.favorite_outline,
+            description: '收藏的歌曲和专辑将在这里显示，等待 Rust 后端接入。',
+          ),
+          AppSection.playlists => const PlaylistPage(),
+          AppSection.settings => const SettingsPage(),
+        },
     ];
 
     final Widget content = IndexedStack(index: selectedIndex, children: pages);

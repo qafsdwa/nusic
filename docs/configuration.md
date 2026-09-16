@@ -116,6 +116,10 @@ flutter:
         "shadow": "#000000",
         "shadowOpacity": 0.25
       }
+    },
+    "heroGradient": {
+      "light": ["#DCE7FB", "#E8E0FB", "#FBE3EE"],
+      "dark": ["#1F2A44", "#2E2344", "#3E2135"]
     }
   }
 }
@@ -192,6 +196,23 @@ flutter:
 | `highlightOpacity` | number | `0.32` / `0.10` | 高光透明度 |
 | `shadow` | string | `#000000` / `#000000` | 阴影颜色 |
 | `shadowOpacity` | number | `0.08` / `0.25` | 阴影透明度 |
+
+#### `theme.heroGradient`
+
+首页 Hero 卡片（"今日推荐"）的装饰性渐变。它是全应用唯一一块大面积装饰表面，
+色相跨度大、不对应任何单个 Material 3 颜色角色，因此单独开一节配置，
+而不是写死在 widget 里。
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `light` | string[] | 浅色主题下的色标，**按左上到右下顺序**，至少 1 个 |
+| `dark` | string[] | 深色主题下的色标，顺序同上 |
+
+**解析是「全有或全无」的**：只要有一个色标不合法，整条渐变回退到
+`HeroGradientConfig.fallback`。半解析的渐变既不是配置值也不是默认值，
+比直接回退更糟。空数组同样回退（只有一个色标不构成渐变）。
+
+回归测试见 `test/app_config_test.dart` 的 `hero gradient parsing` 分组。
 
 #### `theme.light` / `theme.dark`
 

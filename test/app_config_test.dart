@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:muse_player/app/theme.dart';
 import 'package:muse_player/core/config/app_config.dart';
 import 'package:muse_player/core/config/app_config_loader.dart';
+import 'package:muse_player/core/config/hero_gradient_config.dart';
+import 'package:muse_player/core/config/theme_config.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -101,6 +103,10 @@ void main() {
             'shadowOpacity': 0.3,
           },
         },
+        'heroGradient': <String, dynamic>{
+          'light': <String>['#DCE7FB', '#E8E0FB', '#FBE3EE'],
+          'dark': <String>['#1F2A44', '#2E2344', '#3E2135'],
+        },
       },
     });
 
@@ -132,6 +138,55 @@ void main() {
     expect(config.theme.glass.borderWidth, 2);
     expect(config.theme.glass.light.surfaceStartOpacity, 0.8);
     expect(config.theme.glass.dark.shadowOpacity, 0.3);
+    expect(config.theme.heroGradient.light, hasLength(3));
+    expect(
+      config.theme.heroGradient.light.first,
+      const Color(0xFFDCE7FB),
+      reason: 'hero gradient stops are read from config, not hardcoded',
+    );
+    expect(config.theme.heroGradient.dark.first, const Color(0xFF1F2A44));
+  });
+
+  group('hero gradient parsing', () {
+    ThemeConfig parseTheme(Object? heroGradient) {
+      return ThemeConfig.fromJson(<String, dynamic>{
+        'heroGradient': heroGradient,
+      });
+    }
+
+    test('falls back when the section is missing', () {
+      expect(
+        parseTheme(null).heroGradient.light,
+        HeroGradientConfig.fallback.light,
+      );
+    });
+
+    test('falls back when the list is empty', () {
+      expect(
+        parseTheme(<String, dynamic>{'light': <String>[]}).heroGradient.light,
+        HeroGradientConfig.fallback.light,
+      );
+    });
+
+    test('is all-or-nothing: one bad stop discards the whole gradient', () {
+      // A partially parsed gradient would render as neither the configured
+      // value nor the fallback, which is worse than either.
+      expect(
+        parseTheme(<String, dynamic>{
+          'light': <String>['#DCE7FB', 'not-a-colour', '#FBE3EE'],
+        }).heroGradient.light,
+        HeroGradientConfig.fallback.light,
+      );
+    });
+
+    test('keeps a well-formed gradient', () {
+      expect(
+        parseTheme(<String, dynamic>{
+          'light': <String>['#112233', '#445566'],
+        }).heroGradient.light,
+        <Color>[const Color(0xFF112233), const Color(0xFF445566)],
+      );
+    });
   });
 
   test('AppConfig falls back when nested config is missing', () {

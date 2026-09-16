@@ -16,21 +16,18 @@ import 'home_widgets.dart';
 
 /// Home page: greeting, hero card, recently played and recommended playlists.
 class HomePage extends ConsumerWidget {
-  const HomePage({super.key, this.onSearchTap});
-
-  /// Callback used by the responsive shell to switch to the Search page.
-  final VoidCallback? onSearchTap;
+  const HomePage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return PageScaffold(
       children: <Widget>[
         HomeHeader(
-          onSearchTap:
-              onSearchTap ??
-              () {
-                Navigator.of(context).pushNamed(AppRoutes.search);
-              },
+          // Search is not a shell destination — the home header is its only
+          // entry point, and it pushes the search route.
+          onSearchTap: () {
+            Navigator.of(context).pushNamed(AppRoutes.search);
+          },
         ),
         const SizedBox(height: AppSizes.spacingLg),
         HomeHeroCard(

@@ -141,6 +141,18 @@ M3 的原始边界是 600 / 840 / 1200 / 1600。`medium` 与 `expanded` 共用 r
 不是随手定的设备宽度。`AppBreakpoints` 同时导出 `compactMax` / `mediumMax` /
 `expandedMax` 供需要原始 M3 边界的场合使用。
 
+### 导航结构
+
+外壳有 **5 个分区**（首页 / 音乐库 / 收藏 / 播放列表 / 设置），在 compact 尺寸下
+正好落在 M3 对底部导航「3–5 个目的地」的建议区间内。
+
+`AppSection` 枚举的顺序**即**导航顺序，其 `index` **即** shell 的页面索引；
+`app.dart` 直接遍历 `AppSection.values` 构建 `IndexedStack`，因此
+"页面列表与枚举顺序不一致" 这类错误在编译期就不可能发生，新增分区也会强制补上页面。
+
+**搜索不是分区**。首页头部已经带搜索框，再占一个导航位是冗余的；搜索改为 push
+`AppRoutes.search` 路由（自带 AppBar 与返回），首页头部是它的唯一入口。
+
 所有页面内容通过 `ConstrainedBox` 居中。**最大宽度按内容类型分两档**：
 
 | 常量 | 值 | 用途 |
@@ -183,6 +195,12 @@ Floating Player Bar 始终位于 `Stack` 中，并使用
 靠 `Lowest / Low / Container / High / Highest` 五级递进区分层级。
 把五级指向同一个色值，就等于失去了表达高度的唯一手段 —— 这也是为什么卡片
 只能一律 `elevation: 0`。
+
+### 装饰性渐变
+
+首页 Hero 卡片是全应用唯一一块大面积装饰表面。它的色相跨度大、不对应任何单个 M3
+颜色角色，因此放在 `theme.heroGradient`（明暗各一组色标）里，而不是写死在 widget 中。
+解析是「全有或全无」的 —— 半解析的渐变既不是配置值也不是默认值，比直接回退更糟。
 
 ### 形状令牌
 

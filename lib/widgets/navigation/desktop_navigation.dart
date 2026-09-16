@@ -7,7 +7,6 @@ import '../../core/utils/motion.dart';
 IconData _iconFor(AppSection section, {required bool selected}) {
   return switch (section) {
     AppSection.home => selected ? Icons.home : Icons.home_outlined,
-    AppSection.search => selected ? Icons.search : Icons.search,
     AppSection.library =>
       selected ? Icons.library_music : Icons.library_music_outlined,
     AppSection.favorites => selected ? Icons.favorite : Icons.favorite_outline,
@@ -17,7 +16,7 @@ IconData _iconFor(AppSection section, {required bool selected}) {
   };
 }
 
-/// Custom desktop navigation panel (width ≥ 1101).
+/// Custom desktop navigation panel (width ≥ 1200).
 ///
 /// Lightweight, flat, and Material — selected items use the primary container
 /// with primary text and a 16px radius.

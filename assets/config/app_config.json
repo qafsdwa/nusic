@@ -89,6 +89,10 @@
         "shadow": "#000000",
         "shadowOpacity": 0.25
       }
+    },
+    "heroGradient": {
+      "light": ["#DCE7FB", "#E8E0FB", "#FBE3EE"],
+      "dark": ["#1F2A44", "#2E2344", "#3E2135"]
     }
   }
 }

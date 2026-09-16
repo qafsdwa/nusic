@@ -2,6 +2,7 @@ import 'dart:ui' show Color;
 
 import 'config_color.dart';
 import 'glass_config.dart';
+import 'hero_gradient_config.dart';
 
 /// Theme configuration loaded from `assets/config/app_config.json`.
 ///
@@ -15,6 +16,7 @@ class ThemeConfig {
     required this.light,
     required this.dark,
     required this.glass,
+    required this.heroGradient,
   });
 
   /// One of `system`, `light`, `dark`.
@@ -24,17 +26,22 @@ class ThemeConfig {
   final ThemePalette dark;
   final GlassConfig glass;
 
+  /// Decorative gradient for the home hero card.
+  final HeroGradientConfig heroGradient;
+
   static const ThemeConfig fallback = ThemeConfig(
     mode: 'system',
     light: ThemePalette.lightFallback,
     dark: ThemePalette.darkFallback,
     glass: GlassConfig.fallback,
+    heroGradient: HeroGradientConfig.fallback,
   );
 
   factory ThemeConfig.fromJson(Map<String, dynamic> json) {
     final Object? lightJson = json['light'];
     final Object? darkJson = json['dark'];
     final Object? glassJson = json['glass'];
+    final Object? heroGradientJson = json['heroGradient'];
 
     return ThemeConfig(
       mode: json['mode'] as String? ?? fallback.mode,
@@ -50,6 +57,12 @@ class ThemeConfig {
       glass: glassJson is Map<String, dynamic>
           ? GlassConfig.fromJson(glassJson)
           : fallback.glass,
+      heroGradient: heroGradientJson is Map<String, dynamic>
+          ? HeroGradientConfig.fromJson(
+              heroGradientJson,
+              fallback: HeroGradientConfig.fallback,
+            )
+          : fallback.heroGradient,
     );
   }
 
@@ -59,6 +72,7 @@ class ThemeConfig {
       'light': light.toJson(),
       'dark': dark.toJson(),
       'glass': glass.toJson(),
+      'heroGradient': heroGradient.toJson(),
     };
   }
 }

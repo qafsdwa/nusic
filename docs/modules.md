@@ -9,7 +9,7 @@
 | `main.dart` | 程序入口：`initializeApp()` 加载配置后，用 `ProviderScope` override `appConfigProvider` 并启动 `MuseApp` |
 | `app/app.dart` | `MuseApp`（读取 `appName` 的 MaterialApp 根组件）与 `MainShell`（响应式外壳） |
 | `app/breakpoints.dart` | `AppBreakpoint` 与 `AppBreakpoints`：断点对齐 M3 window size class —— Mobile `<600` (compact) / Tablet `600~1199` (medium+expanded) / Desktop `>=1200` (large+extra-large)；另导出 `compactMax` / `mediumMax` / `expandedMax` 与组件级的 `heroCompactMax` |
-| `app/router.dart` | `AppRoutes` 命名路由表（`/search`、`/now-playing` 等），支持深链与后续后端驱动导航 |
+| `app/router.dart` | `AppRoutes` 命名路由表（`/search`、`/now-playing`）。搜索**不是 shell 分区**，首页头部是它的唯一入口，点击后 push `/search` 路由 |
 | `app/theme.dart` | `AppTheme.light(ThemePalette)` / `dark(ThemePalette)`：从配置色板构建 Material 3 主题，并提供 `resolveThemeMode` |
 
 ## core/config/ — 配置系统
@@ -17,9 +17,10 @@
 | 文件 | 职责 |
 | --- | --- |
 | `app_config.dart` | `AppConfig` / `PlayerConfig`：配置模型、`fromJson` / `toJson`、fallback |
-| `theme_config.dart` | `ThemeConfig` / `ThemePalette`：主题模式与明暗色板、hex 颜色解析 |
+| `theme_config.dart` | `ThemeConfig` / `ThemePalette`：主题模式、明暗色板（字段名对齐 M3 `md.sys.color.*` 角色）、hero 渐变入口 |
 | `glass_config.dart` | `GlassConfig` / `GlassPalette`：底部 Floating Player Bar 的玻璃颜色、透明度、模糊与阴影 |
-| `config_color.dart` | 配置颜色 / 透明度 / 数值解析工具 |
+| `hero_gradient_config.dart` | `HeroGradientConfig`：首页 Hero 卡片的明暗两套渐变色标（全应用唯一的装饰性大面积渐变） |
+| `config_color.dart` | 配置颜色 / 颜色数组 / 透明度 / 数值解析工具；`parseConfigColorList` 为全有或全无语义 |
 | `app_config_loader.dart` | `AppConfigLoader`：从 `assets/config/app_config.json` 加载配置；异常时回退 |
 | `app_config_provider.dart` | `appConfigProvider`：全局配置 Riverpod Provider |
 | `app_bootstrap.dart` | `initializeApp()`：初始化 Flutter 绑定并加载启动配置 |
@@ -41,7 +42,7 @@
 | 文件 | 职责 |
 | --- | --- |
 | `app_sizes.dart` | `AppSizes`：间距、页面最大宽度（`pageMaxWidth` / `pageMaxWidthText`）、形状令牌（`shape*`，对齐 M3 `md.sys.shape.corner.*`）、导航宽度、Floating Player Bar 与滚动底部留白等尺寸 |
-| `app_section.dart` | `AppSection` 枚举：首页 / 搜索 / 音乐库 / 收藏 / 播放列表 / 设置，含 id 与中文 label。`AppSection.x.index` 即 shell 导航索引，不要写魔法数字 |
+| `app_section.dart` | `AppSection` 枚举：首页 / 音乐库 / 收藏 / 播放列表 / 设置，含 id 与中文 label。**枚举顺序即导航顺序，`index` 即 shell 页面索引**；`app.dart` 直接遍历 `AppSection.values` 构建页面，新增分区会编译报错直到补上页面。搜索**不是**分区，见 `router.dart` |
 
 ### network/
 
@@ -106,7 +107,7 @@
 | `home/home_page.dart` | 首页：Hero、最近播放、推荐歌单 |
 | `home/home_widgets.dart` | Home Header / 搜索框 |
 | `home/home_cards.dart` | Hero 卡片 / 最近播放卡片 / 歌单卡片 |
-| `search/search_page.dart` | 搜索页：本地过滤标题 / 艺术家 / 专辑 |
+| `search/search_page.dart` | 搜索页：本地过滤标题 / 艺术家 / 专辑。经 `AppRoutes.search` 以路由方式打开（自带 AppBar 与返回），不是 shell 分区 |
 | `library/library_page.dart` | 音乐库：歌曲 / 专辑 / 歌手 SegmentedButton 切换 |
 | `playlist/playlist_page.dart` | 歌单详情：封面、名称、播放全部、曲目列表 |
 | `now_playing/now_playing_page.dart` | Now Playing 入口与响应式布局选择 |
