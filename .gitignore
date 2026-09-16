@@ -47,3 +47,7 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# Local scratch workspace. Holds the standalone web player demo and the
+# screenshots taken while verifying the Flutter UI — deliberately not tracked.
+/demo/
