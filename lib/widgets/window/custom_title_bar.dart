@@ -1,20 +1,37 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
+
+import '../../app/breakpoints.dart';
+import '../../app/router.dart';
+import '../../core/config/app_config_provider.dart';
+import '../../core/constants/app_sizes.dart';
+import '../common/search_launcher.dart';
 
 /// Material-styled custom desktop title bar.
 ///
 /// The native title bar is hidden by [setUpDesktopWindow], so this widget owns
 /// window dragging, double-click maximize/restore and the window controls.
-class CustomTitleBar extends StatefulWidget {
+///
+/// It deliberately paints no opaque background: the ambient wash runs behind it,
+/// which is what makes the shell surface below read as a floating pane instead
+/// of a full-bleed window.
+class CustomTitleBar extends ConsumerStatefulWidget {
   const CustomTitleBar({super.key});
 
-  static const double height = 44;
+  static const double height = AppSizes.titleBarHeight;
+
+  /// Below this width the search field is dropped rather than squeezed. A
+  /// 200dp-wide search field reads as broken, and the Home header search is
+  /// still available at that size.
+  static const double _searchMinWidth = 620;
 
   @override
-  State<CustomTitleBar> createState() => _CustomTitleBarState();
+  ConsumerState<CustomTitleBar> createState() => _CustomTitleBarState();
 }
 
-class _CustomTitleBarState extends State<CustomTitleBar> with WindowListener {
+class _CustomTitleBarState extends ConsumerState<CustomTitleBar>
+    with WindowListener {
   bool _isMaximized = false;
 
   @override
@@ -86,55 +103,138 @@ class _CustomTitleBarState extends State<CustomTitleBar> with WindowListener {
 
   @override
   Widget build(BuildContext context) {
+    final String appName = ref.watch(appConfigProvider).appName;
+
+    return SizedBox(
+      height: CustomTitleBar.height,
+      child: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          // The title bar spans the same width as the shell, so it can work out
+          // the breakpoint itself and align the brand over the navigation column
+          // rather than duplicating the shell's layout decision.
+          final double leadingWidth = switch (AppBreakpoints.fromWidth(
+            constraints.maxWidth,
+          )) {
+            AppBreakpoint.desktop => AppSizes.navigationPanelWidth,
+            AppBreakpoint.tablet => AppSizes.navigationRailWidth,
+            AppBreakpoint.mobile => 0,
+          };
+          final bool showSearch =
+              constraints.maxWidth >= CustomTitleBar._searchMinWidth;
+          final EdgeInsets brandPadding = EdgeInsets.only(
+            left: AppSizes.shellMargin + AppSizes.spacingMd,
+          );
+          final Widget brand = _BrandLockup(
+            appName: appName,
+            // Drop the wordmark on the narrow shells, where the navigation
+            // column is a rail or absent and horizontal room is scarce.
+            showWordmark: leadingWidth >= AppSizes.navigationPanelWidth,
+          );
+
+          return Row(
+            children: <Widget>[
+              if (leadingWidth > 0)
+                SizedBox(
+                  width: leadingWidth,
+                  child: Padding(
+                    padding: brandPadding,
+                    child: Align(alignment: Alignment.centerLeft, child: brand),
+                  ),
+                )
+              else
+                Padding(padding: brandPadding, child: brand),
+              Expanded(
+                child: Stack(
+                  children: <Widget>[
+                    // The drag surface sits behind the search field so the whole
+                    // bar drags except where a control needs the tap.
+                    Positioned.fill(
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.translucent,
+                        onDoubleTap: _toggleMaximize,
+                        child: const DragToMoveArea(child: SizedBox.expand()),
+                      ),
+                    ),
+                    if (showSearch)
+                      Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 460),
+                          child: SearchLauncherField(
+                            onTap: () {
+                              Navigator.of(context).pushNamed(AppRoutes.search);
+                            },
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              _WindowControlButton(
+                icon: Icons.remove,
+                tooltip: '最小化',
+                onPressed: _minimize,
+              ),
+              _WindowControlButton(
+                icon: _isMaximized ? Icons.filter_none : Icons.crop_square,
+                tooltip: _isMaximized ? '还原' : '最大化',
+                onPressed: _toggleMaximize,
+              ),
+              _WindowControlButton(
+                icon: Icons.close,
+                tooltip: '关闭',
+                onPressed: _close,
+                isClose: true,
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// Rounded-square glyph plus the app wordmark.
+class _BrandLockup extends StatelessWidget {
+  const _BrandLockup({required this.appName, required this.showWordmark});
+
+  final String appName;
+  final bool showWordmark;
+
+  @override
+  Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
 
-    return Material(
-      color: theme.colorScheme.surface,
-      child: Container(
-        height: CustomTitleBar.height,
-        decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(color: theme.colorScheme.outlineVariant),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Container(
+          width: 28,
+          height: 28,
+          decoration: BoxDecoration(
+            color: theme.colorScheme.primary,
+            borderRadius: BorderRadius.circular(AppSizes.shapeSm),
+          ),
+          child: Icon(
+            Icons.play_arrow_rounded,
+            size: 20,
+            color: theme.colorScheme.onPrimary,
           ),
         ),
-        child: Row(
-          children: <Widget>[
-            const SizedBox(width: 14),
-            Icon(Icons.graphic_eq, size: 20, color: theme.colorScheme.primary),
-            const SizedBox(width: 8),
-            Text(
-              'Muse Player',
-              style: theme.textTheme.titleSmall?.copyWith(
+        if (showWordmark) ...<Widget>[
+          const SizedBox(width: AppSizes.spacingSm),
+          Flexible(
+            child: Text(
+              appName,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w700,
+                letterSpacing: -0.2,
               ),
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onDoubleTap: _toggleMaximize,
-                child: const DragToMoveArea(child: SizedBox.expand()),
-              ),
-            ),
-            _WindowControlButton(
-              icon: Icons.remove,
-              tooltip: '最小化',
-              onPressed: _minimize,
-            ),
-            _WindowControlButton(
-              icon: _isMaximized ? Icons.filter_none : Icons.crop_square,
-              tooltip: _isMaximized ? '还原' : '最大化',
-              onPressed: _toggleMaximize,
-            ),
-            _WindowControlButton(
-              icon: Icons.close,
-              tooltip: '关闭',
-              onPressed: _close,
-              isClose: true,
-            ),
-          ],
-        ),
-      ),
+          ),
+        ],
+      ],
     );
   }
 }

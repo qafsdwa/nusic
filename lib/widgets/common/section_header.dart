@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../core/constants/app_sizes.dart';
+
 /// Visual weight of a [SectionHeader].
 enum SectionHeaderSize {
   /// Top-of-page title, e.g. "音乐库".
@@ -12,7 +14,7 @@ enum SectionHeaderSize {
   subsection,
 }
 
-/// A page or section title with an optional trailing "更多" action.
+/// A page or section title with an optional trailing "查看全部" action.
 ///
 /// All headings in the app go through this widget so a change to heading
 /// typography is a one-line edit instead of a hunt across every page.
@@ -24,12 +26,16 @@ class SectionHeader extends StatelessWidget {
   const SectionHeader({
     super.key,
     required this.title,
-    this.onMoreTap,
+    this.onSeeAllTap,
     this.size = SectionHeaderSize.section,
   });
 
   final String title;
-  final VoidCallback? onMoreTap;
+
+  /// Opens the full list behind this section. `null` renders no trailing
+  /// action rather than a link that goes nowhere.
+  final VoidCallback? onSeeAllTap;
+
   final SectionHeaderSize size;
 
   @override
@@ -68,14 +74,29 @@ class SectionHeader extends StatelessWidget {
       style: baseStyle?.copyWith(fontWeight: weight, color: color),
     );
 
-    if (onMoreTap == null) {
+    if (onSeeAllTap == null) {
       return label;
     }
 
     return Row(
       children: <Widget>[
         Expanded(child: label),
-        TextButton(onPressed: onMoreTap, child: const Text('更多')),
+        TextButton(
+          onPressed: onSeeAllTap,
+          style: TextButton.styleFrom(
+            foregroundColor: colors.onSurfaceVariant,
+            padding: const EdgeInsets.symmetric(horizontal: AppSizes.spacingSm),
+            minimumSize: const Size(0, 36),
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Text('查看全部'),
+              Icon(Icons.chevron_right_rounded, size: 18),
+            ],
+          ),
+        ),
       ],
     );
   }

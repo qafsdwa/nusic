@@ -3,7 +3,8 @@
 本文档定义 Muse Player 使用 `flutter_rust_bridge`（FRB）与 Rust 后端联动时的
 Dart ↔ Rust 数据结构。
 
-当前阶段只落地 **数据契约 + Dart 映射层 + Rust 模型骨架**，不包含真实音频播放。
+数据契约、Dart 映射层与真实音频播放均已落地；Rust 侧还额外提供 B 站在线音轨
+搜索与下载（见 [在线（Bilibili）能力](#在线bilibili能力)）。
 
 ## 设计目标
 
@@ -18,18 +19,24 @@ Dart ↔ Rust 数据结构。
 ## 目录
 
 ```text
-rust/
+rust/backend/
 ├── Cargo.toml
 └── src/
     ├── lib.rs
+    ├── frb_generated.rs          # FRB 生成的胶水（自动）
+    ├── runtime.rs                # FFI 单例（不参与扫描）
+    ├── online.rs                 # B 站在线层：搜索 / 解析 / 缓存（不参与扫描）
     └── api/
         ├── mod.rs
-        └── bridge_models.rs      # Rust 侧数据契约
+        ├── bridge_models.rs      # Rust 侧数据契约
+        ├── library.rs            # 搜索 / 歌单
+        ├── online.rs             # 在线搜索 / 音轨准备
+        └── player.rs             # 初始化 / 快照 / 指令 / 状态流
 
 lib/core/bridge/
 ├── bridge_models.dart            # Dart 侧手写镜像
 ├── bridge_mapper.dart            # UI 模型 ↔ Bridge DTO 转换
-└── generated/                    # FRB codegen 输出目录（待生成）
+└── generated/                    # FRB codegen 输出（含 freezed 值）
 
 flutter_rust_bridge.yaml          # FRB 配置
 ```
@@ -158,6 +165,43 @@ Rust 初始化参数：
 ```rust
 BridgeLyricLine { start_ms: i64, text: String }
 ```
+
+## 在线（Bilibili）能力
+
+Rust 侧通过 [`bpi-rs`](https://github.com/Yuelioi/bpi-rs) 接入 B 站。播放的是视频的
+**DASH 音轨**，流程是：搜索命中 → 读取 `cid` 并解析 DASH 音轨 → 下载到本地缓存 →
+交给现有播放器按本地文件播放。因此播放状态机、音频引擎与事件流都不需要新增来源类型。
+
+### `BridgeOnlineStatus`
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `available` | `bool` | 在线层（HTTP 客户端 + 运行时）是否可用 |
+| `authenticated` | `bool` | 是否通过环境变量提供了 Cookie |
+| `cache_dir` | `Option<String>` | 音轨缓存目录 |
+| `error` | `Option<String>` | 不可用原因 |
+
+### Rust API
+
+| 函数 | 说明 |
+| --- | --- |
+| `online::status()` | 在线层健康状态，UI 用它决定是否展示在线搜索 |
+| `online::search_videos(query, page)` | 搜索视频；命中会注册到目录，之后可按 id 解析 |
+| `online::prepare_track(track_id)` | 解析 DASH 音轨并（首次）下载，返回权威的标题/时长/封面 |
+
+### 播放约定
+
+1. 搜索结果的 `BridgeTrack.id` 形如 `bili_<BV号>`，`source` 为 `Remote`；
+2. 播放前必须先调用 `prepare_track`；否则 Rust 播放器会以
+   `online track … has not been downloaded yet` 拒绝命令，而不是播放静音占位；
+3. 下载按曲目缓存（默认 `<缓存目录>/bilibili/<id>.m4a`），重复播放不再请求网络；
+4. 匿名即可获取标准音轨；设置 `BPI_COOKIE`（或 `MUSE_BILI_COOKIE`）可解锁更高音质；
+5. 在线曲目不会进入本地目录、`GET /playlist` 或本地搜索，只按 id 可解析；
+6. 搜索命中的时长来自搜索接口（多 P 合集是整部合集的时长），
+   `prepare_track` 会用实际下载音轨的时长覆盖它；缓存命中时改从音频文件本身读取，
+   因此进度条始终对应真正播放的那一条音轨；
+7. 播放单条在线结果时队列只包含该曲目 —— 队列编辑（`playNext` / `addToQueue`）
+   在 FFI 契约里仍未实现，见 [roadmap.md](roadmap.md)。
 
 ## Dart 侧映射
 

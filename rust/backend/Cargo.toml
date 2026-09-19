@@ -1,0 +1,59 @@
+[package]
+name = "muse_backend"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75"
+publish = false
+description = "Muse Player 的 Rust 后端：Rodio 音频引擎 + REST / WebSocket 控制接口"
+license = "MIT OR Apache-2.0"
+
+[lib]
+name = "muse_backend"
+path = "src/lib.rs"
+# `cdylib` is what the Flutter app links through flutter_rust_bridge; `rlib`
+# keeps the crate usable as a normal library (and by its own tests).
+crate-type = ["cdylib", "staticlib", "rlib"]
+
+[[bin]]
+name = "muse-backend"
+path = "src/main.rs"
+
+[dependencies]
+# The in-process bridge the Flutter app links against. The HTTP server is kept
+# for other clients, but the app no longer talks to it over the network.
+flutter_rust_bridge = "=2.13.0"
+
+anyhow = "1"
+axum = { version = "0.8", features = ["ws", "json", "query", "http1", "tokio"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "sync", "time", "signal", "fs", "io-util"] }
+tower-http = { version = "0.6", features = ["cors", "trace"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# `playback` is cpal output; `symphonia-all` covers every format the local
+# library can contain (flac/mp3/mp4/vorbis/wav). `recording` and `dither` are
+# deliberately left off: a player only needs to push samples out.
+rodio = { version = "0.22", default-features = false, features = ["playback", "symphonia-all"] }
+lofty = "0.25"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+thiserror = "2"
+walkdir = "2"
+futures-util = "0.3"
+tokio-stream = { version = "0.1", features = ["sync"] }
+mime_guess = "2"
+# Cover art is generated in-process, so the server needs an image encoder.
+# Only the JPEG codec is pulled in; the default feature set would drag in every
+# other format for no benefit.
+image = { version = "0.25", default-features = false, features = ["jpeg"] }
+bpi-rs = { version = "0.3", default-features = false, features = ["search", "video"] }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["full"] }
+tower = { version = "0.5", features = ["util"] }
+http-body-util = "0.1"
+tempfile = "3"
+symphonia = { version = "0.5.5", default-features = false, features = ["aac", "isomp4", "mp3", "flac", "vorbis", "wav", "pcm"] }
+# Used by the WebSocket integration test to drive the server as a real client.
+tokio-tungstenite = "0.29"
+# Builds WAV fixtures for the library-scan tests.
+hound = "3"

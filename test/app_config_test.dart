@@ -213,7 +213,9 @@ void main() {
     expect(config.appName, 'Muse Player');
     expect(config.environment, 'development');
     expect(config.enableMockData, isTrue);
-    expect(config.enableNetwork, isFalse);
+    // The backend client is wired up, so the shipped config opts in. Mock data
+    // stays available as the offline fallback.
+    expect(config.enableNetwork, isTrue);
     expect(config.backend.baseUrl, 'http://127.0.0.1:8080');
     expect(config.backend.playerWebSocketPath, '/ws/player');
     expect(config.player.initialVolume, 0.7);

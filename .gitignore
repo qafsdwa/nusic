@@ -51,3 +51,21 @@ app.*.map.json
 # Local scratch workspace. Holds the standalone web player demo and the
 # screenshots taken while verifying the Flutter UI — deliberately not tracked.
 /demo/
+
+# CodeGraph local index (per-machine, rebuilt by `codegraph init`).
+/.codegraph/
+/codegraph.json
+
+# Rust build artifacts. The backend is a standalone crate, so it gets its own
+# `target/` rather than sharing the bridge crate's.
+/rust/target/
+/rust/backend/target/
+
+# Writable mirror of the read-only Flutter SDK used by this environment.
+/.flutter-overlay/
+
+# Writable CARGO_HOME used to install the FRB codegen (read-only ~/.cargo).
+/.cargo-home/
+
+# Local agent scratch memory — per-machine notes, not part of the project.
+/.workbuddy-ai/

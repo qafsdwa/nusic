@@ -1,11 +1,26 @@
 import 'package:flutter/material.dart';
 
+import 'generated_artwork.dart';
+
+/// How a [CoverArtwork] renders its cover.
+enum CoverArtworkStyle {
+  /// Generated illustrative scene. The default: it is what the app's design
+  /// uses everywhere, so a list of songs reads as a wall of artwork rather than
+  /// a column of coloured squares.
+  scene,
+
+  /// Generated gradient with the title's first character. Reserved for places
+  /// where the artwork is too small for a scene to resolve — anything under
+  /// roughly 32dp.
+  monogram,
+}
+
 /// Generated mock cover artwork.
 ///
-/// Phase 1 uses deterministic gradients/initial letters so the UI is complete
+/// Phase 1 uses deterministic gradients and scenes so the UI is complete
 /// without external image assets or network calls. When real cover URLs arrive
 /// from the Rust backend, this widget can be extended to render an
-/// [Image.network]/[Image.asset] while keeping the placeholder fallback.
+/// [Image.network]/[Image.asset] while keeping the generated fallback.
 class CoverArtwork extends StatelessWidget {
   const CoverArtwork({
     super.key,
@@ -13,12 +28,49 @@ class CoverArtwork extends StatelessWidget {
     this.coverKey = '',
     this.size = 48,
     this.borderRadius = 8,
+    this.style = CoverArtworkStyle.scene,
   });
 
   final String title;
   final String coverKey;
   final double size;
   final double borderRadius;
+  final CoverArtworkStyle style;
+
+  /// Smallest size at which a scene still reads as a picture rather than as
+  /// noise. Below it [CoverArtworkStyle.scene] silently degrades to a monogram.
+  static const double _sceneMinSize = 32;
+
+  @override
+  Widget build(BuildContext context) {
+    final bool useScene =
+        style == CoverArtworkStyle.scene && size >= _sceneMinSize;
+    final String seed = '$coverKey|$title';
+
+    return SizedBox(
+      width: size,
+      height: size,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(borderRadius),
+        child: useScene
+            ? GeneratedArtwork(seedKey: seed)
+            : _Monogram(title: title, seed: seed, size: size),
+      ),
+    );
+  }
+}
+
+/// Gradient tile with the title's first character.
+class _Monogram extends StatelessWidget {
+  const _Monogram({
+    required this.title,
+    required this.seed,
+    required this.size,
+  });
+
+  final String title;
+  final String seed;
+  final double size;
 
   static const List<List<Color>> _palettes = <List<Color>>[
     <Color>[Color(0xFF667EEA), Color(0xFF764BA2)],
@@ -31,31 +83,28 @@ class CoverArtwork extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String seed = '$coverKey|$title';
-    final int colorIndex = seed.hashCode.abs() % _palettes.length;
-    final List<Color> colors = _palettes[colorIndex];
+    final List<Color> colors =
+        _palettes[stableArtworkHash(seed) % _palettes.length];
     final String initial = title.isEmpty
         ? '♪'
         : String.fromCharCode(title.runes.first).toUpperCase();
 
-    return Container(
-      width: size,
-      height: size,
+    return DecoratedBox(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(borderRadius),
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: colors,
         ),
       ),
-      alignment: Alignment.center,
-      child: Text(
-        initial,
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: size * 0.36,
-          fontWeight: FontWeight.w700,
+      child: Center(
+        child: Text(
+          initial,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: size * 0.36,
+            fontWeight: FontWeight.w700,
+          ),
         ),
       ),
     );

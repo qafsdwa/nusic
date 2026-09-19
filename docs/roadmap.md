@@ -22,11 +22,28 @@
 
 ## Phase 3 — Rust 后端对接
 
-- [ ] 实现 REST 端点（`/songs/search`、`/songs/{id}`、`/playlist`）
-- [ ] 实现 WebSocket `/ws/player` 状态同步
-- [ ] `RustApiClient` 落地 HTTP / WS 客户端
-- [ ] Mock 数据切换为后端数据
-- [ ] 真实封面加载（`Image.network` + 缓存）
+后端侧（`rust/backend/`）：
+
+- [x] 实现 REST 端点（`/songs/search`、`/songs/{id}`、`/playlist`、`/covers/{id}.jpg`、`/health`）
+- [x] 实现 WebSocket `/ws/player` 状态同步（指令 + 状态推送 + 错误回传）
+- [x] 目录扫描（`walkdir` + `lofty`）与内置 seed 目录回退
+- [x] 程序化生成封面（512×512 JPEG，可长缓存）
+- [x] 接入真实音频引擎（`rodio` 解码 + 输出，位置来自音频时钟）
+- [x] 音频引擎抽象（`AudioEngine` trait：rodio / 无声卡虚拟时钟）
+- [x] B 站在线层（`bpi-rs`）：视频搜索 → DASH 音轨解析 → 缓存为本地文件后播放
+- [x] 在线曲目叠加层：只按 id 解析，不进入本地目录 / 歌单 / 本地搜索
+
+客户端侧（Flutter）：
+
+- [x] flutter_rust_bridge 接入：App 通过 FFI **同进程**调用 Rust，不再走 HTTP/WS
+- [x] `PlayerNotifier` 引擎模式：指令转发 + `subscribe()` 状态镜像（库加载失败则回退 Mock）
+- [x] 搜索页接入 Rust 引擎（防抖 + 错误态）
+- [x] 搜索页在线 / 本地切换；在线曲目播放前先下载缓存（进度条 + 失败提示）
+- [ ] 音乐库 / 歌单页切换到 Rust 数据（当前仍读 `MockMusic`）
+- [ ] 队列增删改的 FFI 指令（`playNext` / `addToQueue` 引擎模式下暂为空操作）
+- [ ] 封面：本地文件内嵌图通过 FFI 传给 Flutter（当前仍是生成图）
+- [ ] Rust 侧 HTTP/WS 前端与 App 解耦（目前仍在同一 crate，App 链接时会被带入）
+- [ ] 在线结果分页 / 滚动加载，以及准备阶段的进度反馈
 
 ## Phase 4 — 完整功能
 

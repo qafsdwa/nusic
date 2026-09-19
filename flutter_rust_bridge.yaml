@@ -1,3 +1,6 @@
+# `rust/backend` is the crate the Flutter app links: it owns the data contract,
+# the library/player engine, and the FRB API surface. The REST/WS front-end
+# lives in the same crate but is not used by the app.
 rust_input: crate::api
-rust_root: rust/
+rust_root: rust/backend/
 dart_output: lib/core/bridge/generated

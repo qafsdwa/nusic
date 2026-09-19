@@ -29,7 +29,7 @@ flutter:
   "appName": "Muse Player",
   "environment": "development",
   "enableMockData": true,
-  "enableNetwork": false,
+  "enableNetwork": true,
   "backend": {
     "baseUrl": "http://127.0.0.1:8080",
     "songsSearchPath": "/songs/search",
@@ -120,6 +120,10 @@ flutter:
     "heroGradient": {
       "light": ["#DCE7FB", "#E8E0FB", "#FBE3EE"],
       "dark": ["#1F2A44", "#2E2344", "#3E2135"]
+    },
+    "ambient": {
+      "light": ["#D5E2FC", "#F0DCF8", "#FDE0E6", "#D9EEF8"],
+      "dark": ["#1B2233", "#2A2036", "#33202C", "#16202E"]
     }
   }
 }
@@ -134,7 +138,7 @@ flutter:
 | `appName` | string | `"Muse Player"` | `MaterialApp.title` |
 | `environment` | string | `"development"` | 当前环境标识，建议值：`development` / `staging` / `production` |
 | `enableMockData` | bool | `true` | 是否使用 Mock 数据。Phase 1 必须为 `true` |
-| `enableNetwork` | bool | `false` | 是否允许真实网络请求。Phase 1 保持 `false` |
+| `enableNetwork` | bool | `true` | 是否允许真实网络请求。开启后会连接 `backend` 段配置的 Rust 后端；后端不可达时自动回退到 Mock |
 | `backend` | object | 见下 | Rust 后端地址与端点路径 |
 | `player` | object | 见下 | 播放器初始状态默认值 |
 | `theme` | object | 见下 | 主题模式与明暗色板 |
@@ -165,6 +169,8 @@ flutter:
 | `light` | object | `ThemePalette.lightFallback` | 浅色模式色板 |
 | `dark` | object | `ThemePalette.darkFallback` | 深色模式色板 |
 | `glass` | object | `GlassConfig.fallback` | 底部 Floating Player Bar 液态玻璃参数 |
+| `heroGradient` | object | `HeroGradientConfig.fallback` | 首页 Hero 底衬渐变 |
+| `ambient` | object | `AmbientConfig.fallback` | 外壳背后的环境光晕
 
 #### `theme.glass`
 
@@ -199,9 +205,9 @@ flutter:
 
 #### `theme.heroGradient`
 
-首页 Hero 卡片（"今日推荐"）的装饰性渐变。它是全应用唯一一块大面积装饰表面，
-色相跨度大、不对应任何单个 Material 3 颜色角色，因此单独开一节配置，
-而不是写死在 widget 里。
+首页 Hero 卡片的底衬渐变。Hero 现在以大图（程序化生成的场景）为主体，这层渐变垫在
+图片下方，既提供调色板色偏，也是图片不可用时的兜底底色。色相跨度大、不对应任何单个
+Material 3 颜色角色，因此单独开一节配置，而不是写死在 widget 里。
 
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
@@ -213,6 +219,24 @@ flutter:
 比直接回退更糟。空数组同样回退（只有一个色标不构成渐变）。
 
 回归测试见 `test/app_config_test.dart` 的 `hero gradient parsing` 分组。
+
+#### `theme.ambient`
+
+外壳背后的环境光晕。`AmbientBackground` 把这里的每个颜色画成一个巨大的柔光斑，
+按固定相对位置铺满窗口；外壳面板从窗口边缘内缩，光晕从缝隙里透出来。
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `light` | string[] | 浅色主题下的光斑颜色，按固定位置依次取用 |
+| `dark` | string[] | 深色主题下的光斑颜色 |
+
+两个语义和 `heroGradient` 不同，不要混用：
+
+- 这里是**光斑颜色**，不是渐变 stops；数组长度就是光斑个数（超出 4 个会循环使用
+  既定的 4 个位置）。
+- 解析同样是「全有或全无」，回退到 `AmbientConfig.fallback`。
+
+深色主题下这些颜色刻意贴近 `background`，光晕只作为极轻微的层次，不抢前景。
 
 #### `theme.light` / `theme.dark`
 
@@ -343,7 +367,9 @@ flutter test
 
 ## 后续扩展
 
-- Phase 3 接入 Rust 后，`enableNetwork` 切换为 `true`，并读取 `backend` 配置。
+- Phase 3 已接入 Rust 后端：`enableNetwork` 默认为 `true`，`backend` 段的 base URL 与
+  端点路径会被 `RustApiClient` 使用。后端未启动时客户端不会报错，而是继续用 Mock 数据
+  提供本地播放。
 - 如需多环境构建，可按 flavor 替换不同 asset，或后续引入
   `--dart-define` / `--dart-define-from-file`。
 - 不要在 asset 配置中存放密钥；敏感信息应使用构建时注入或安全存储。

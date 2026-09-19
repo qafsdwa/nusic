@@ -18,8 +18,9 @@ IconData _iconFor(AppSection section, {required bool selected}) {
 
 /// Custom desktop navigation panel (width ≥ 1200).
 ///
-/// Lightweight, flat, and Material — selected items use the primary container
-/// with primary text and a 16px radius.
+/// Flat and transparent: the shell surface behind it is the panel's background,
+/// so the navigation and the page content read as one pane. The brand lockup is
+/// not repeated here — it lives in [CustomTitleBar], aligned over this column.
 class DesktopNavigationPanel extends StatelessWidget {
   const DesktopNavigationPanel({
     super.key,
@@ -32,82 +33,40 @@ class DesktopNavigationPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
     final List<AppSection> sections = AppSection.values;
 
     return SizedBox(
       width: AppSizes.navigationPanelWidth,
-      child: ColoredBox(
-        color: theme.colorScheme.surface,
-        child: SafeArea(
-          right: false,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSizes.spacingMd,
-                  AppSizes.spacingLg,
-                  AppSizes.spacingMd,
-                  AppSizes.spacingLg,
+      child: SafeArea(
+        right: false,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            const SizedBox(height: AppSizes.spacingMd),
+            Expanded(
+              child: ListView.separated(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSizes.spacingSm,
                 ),
-                child: Row(
-                  children: <Widget>[
-                    Icon(Icons.graphic_eq, color: theme.colorScheme.primary),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Muse Player',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                itemCount: sections.length,
+                separatorBuilder: (BuildContext context, int index) {
+                  return const SizedBox(height: 4);
+                },
+                itemBuilder: (BuildContext context, int index) {
+                  final AppSection section = sections[index];
+                  return _DesktopNavigationItem(
+                    section: section,
+                    selected: index == selectedIndex,
+                    onTap: () => onDestinationSelected(index),
+                  );
+                },
               ),
-              const SizedBox(height: AppSizes.spacingSm),
-              Expanded(
-                child: ListView.separated(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSizes.spacingSm,
-                  ),
-                  itemCount: sections.length,
-                  separatorBuilder: (BuildContext context, int index) {
-                    return const SizedBox(height: 4);
-                  },
-                  itemBuilder: (BuildContext context, int index) {
-                    final AppSection section = sections[index];
-                    return _DesktopNavigationItem(
-                      section: section,
-                      selected: index == selectedIndex,
-                      onTap: () => onDestinationSelected(index),
-                    );
-                  },
-                ),
-              ),
-              // The floating player bar spans the full window width (it is
-              // positioned `left: 24, right: 24` over the whole shell), so the
-              // panel's footer needs the same bottom clearance the scrollable
-              // pages reserve. Without it the bar sits on top of this label.
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSizes.spacingMd,
-                  AppSizes.spacingMd,
-                  AppSizes.spacingMd,
-                  AppSizes.scrollBottomPadding,
-                ),
-                child: Text(
-                  'Phase 1 · Mock UI',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ),
-            ],
-          ),
+            ),
+            // The floating player bar spans the content area, so the last
+            // navigation item needs the same bottom clearance the scrollable
+            // pages reserve. Without it the bar covers the final destination.
+            const SizedBox(height: AppSizes.scrollBottomPadding),
+          ],
         ),
       ),
     );
@@ -186,31 +145,30 @@ class MuseNavigationRail extends StatelessWidget {
   Widget build(BuildContext context) {
     final List<AppSection> sections = AppSection.values;
 
-    return ColoredBox(
-      color: Theme.of(context).colorScheme.surface,
-      child: SafeArea(
-        right: false,
-        child: NavigationRail(
-          selectedIndex: selectedIndex,
-          onDestinationSelected: onDestinationSelected,
-          labelType: NavigationRailLabelType.selected,
-          backgroundColor: Colors.transparent,
-          leading: Padding(
-            padding: const EdgeInsets.only(top: AppSizes.spacingLg),
-            child: Icon(
-              Icons.graphic_eq,
-              color: Theme.of(context).colorScheme.primary,
-            ),
+    return SafeArea(
+      right: false,
+      child: NavigationRail(
+        selectedIndex: selectedIndex,
+        onDestinationSelected: onDestinationSelected,
+        labelType: NavigationRailLabelType.selected,
+        // Transparent so the shell surface behind it is the rail's background,
+        // matching the desktop panel.
+        backgroundColor: Colors.transparent,
+        leading: Padding(
+          padding: const EdgeInsets.only(top: AppSizes.spacingLg),
+          child: Icon(
+            Icons.graphic_eq,
+            color: Theme.of(context).colorScheme.primary,
           ),
-          destinations: <NavigationRailDestination>[
-            for (final AppSection section in sections)
-              NavigationRailDestination(
-                icon: Icon(_iconFor(section, selected: false)),
-                selectedIcon: Icon(_iconFor(section, selected: true)),
-                label: Text(section.label),
-              ),
-          ],
         ),
+        destinations: <NavigationRailDestination>[
+          for (final AppSection section in sections)
+            NavigationRailDestination(
+              icon: Icon(_iconFor(section, selected: false)),
+              selectedIcon: Icon(_iconFor(section, selected: true)),
+              label: Text(section.label),
+            ),
+        ],
       ),
     );
   }

@@ -2,7 +2,7 @@
   "appName": "Muse Player",
   "environment": "development",
   "enableMockData": true,
-  "enableNetwork": false,
+  "enableNetwork": true,
   "backend": {
     "baseUrl": "http://127.0.0.1:8080",
     "songsSearchPath": "/songs/search",
@@ -93,6 +93,10 @@
     "heroGradient": {
       "light": ["#DCE7FB", "#E8E0FB", "#FBE3EE"],
       "dark": ["#1F2A44", "#2E2344", "#3E2135"]
+    },
+    "ambient": {
+      "light": ["#D5E2FC", "#F0DCF8", "#FDE0E6", "#D9EEF8"],
+      "dark": ["#1B2233", "#2A2036", "#33202C", "#16202E"]
     }
   }
 }

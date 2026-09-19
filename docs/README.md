@@ -1,7 +1,9 @@
 # Muse Player 文档
 
 Muse Player 是一个基于 Flutter 的跨平台 Material Design 3 音乐播放器客户端。
-当前处于 **Phase 1：Mock UI** 阶段，尚未接入真实音频播放与后端服务。
+Rust 后端（`rust/backend/`，REST + WebSocket，`rodio` 真实播放）与 Flutter 客户端
+（`lib/core/network/`）均已实现：开启 `enableNetwork` 后客户端搜索后端并镜像其播放
+状态，后端不可达时回退到 Mock 播放。音频由后端输出，Flutter 自身不播放。
 
 ## 文档目录
 
@@ -10,7 +12,7 @@ Muse Player 是一个基于 Flutter 的跨平台 Material Design 3 音乐播放�
 | [architecture.md](architecture.md) | 架构总览、分层设计、启动流程、数据流、响应式与主题系统 |
 | [configuration.md](configuration.md) | `app_config.json` 配置字段、初始化流程、容错与扩展方式 |
 | [modules.md](modules.md) | 各目录 / 文件模块的职责说明 |
-| [backend-api.md](backend-api.md) | 未来 Rust 后端 REST + WebSocket 接口契约 |
+| [backend-api.md](backend-api.md) | Rust 后端 REST + WebSocket 接口契约与实现说明 |
 | [rust-bridge.md](rust-bridge.md) | flutter_rust_bridge 数据契约、Dart ↔ Rust 映射与事件流设计 |
 | [roadmap.md](roadmap.md) | 分阶段规划（Phase 1 → 后续） |
 

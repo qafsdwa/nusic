@@ -6,8 +6,9 @@ Muse Player 是一个**桌面优先**、兼容 Windows / Linux / macOS / Android
 的跨平台音乐播放器 UI 客户端。界面采用 Material Design 3（Material You）
 与轻度 Liquid Glass 风格，中文界面。
 
-当前为 **Phase 1**：仅实现「项目架构 + Mock UI」。真实音频播放与后端调用尚未接入，
-所有歌曲数据来自 `lib/mock/mock_music.dart` 中的静态假数据。
+当前 Flutter 侧为 **Phase 1**：仅实现「项目架构 + Mock UI」。真实音频播放与客户端
+后端调用尚未接入，所有歌曲数据来自 `lib/mock/mock_music.dart` 中的静态假数据。
+Rust 后端（`rust/backend/`）已实现 REST + WebSocket，等待 Phase 3 接入。
 
 ## 技术栈
 
@@ -18,7 +19,7 @@ Muse Player 是一个**桌面优先**、兼容 Windows / Linux / macOS / Android
 | 主题 | Material 3（`ColorScheme.fromSeed`） |
 | 配置 | `assets/config/app_config.json` + 启动初始化 |
 | 布局 | 响应式 `LayoutBuilder` + 自定义 Desktop 导航 / `NavigationRail` / `NavigationBar` |
-| 未来后端 | Rust REST API + WebSocket |
+| 后端 | Rust REST API + WebSocket（`rust/backend/`，已实现；客户端 Phase 3 接入） |
 
 ## 分层结构
 
@@ -33,9 +34,10 @@ lib/
 │   ├── router.dart            #   命名路由表
 │   └── theme.dart             #   Material 3 明暗主题
 ├── core/                      # 基础设施层
-│   ├── config/                #   AppConfig / Loader / Provider / Bootstrap
+│   ├── config/                #   AppConfig / ThemeConfig / AmbientConfig / Loader / Provider / Bootstrap
+│   ├── bridge/                #   Rust 桥接契约（bridge_models / bridge_mapper）
 │   ├── constants/             #   尺寸、形状令牌、导航分区
-│   ├── network/               #   BackendConfig / RustApiClient 占位
+│   ├── network/               #   BackendConfig（HTTP 前端的配置模型）
 │   ├── window/                #   桌面窗口初始化与自定义标题栏开关
 │   └── utils/                 #   格式化工具与动效时长（AppMotion）
 ├── mock/                      # Phase 1 Mock 数据
@@ -51,7 +53,7 @@ lib/
 │   └── settings/
 └── widgets/                   # 可复用组件
     ├── album/
-    ├── common/
+    ├── common/                #   外壳面、环境光晕、生成式封面、搜索入口
     ├── navigation/
     ├── player/
     ├── window/                 # CustomTitleBar
@@ -63,7 +65,7 @@ lib/
 - `pages` / `widgets` 依赖 `models`、`providers`、`core/constants`、`core/utils`。
 - `providers` 依赖 `models`、`mock`、`core/config`（读取播放器默认值与 Mock 数据）。
 - `core/config` 依赖 `core/network` 的 `BackendConfig` 数据模型。
-- `core/network` 中的 `RustApiClient` 目前为空壳，为后续 Rust 接入预留接缝。
+- `core/bridge/rust_player.dart`：`RustPlayer`，对 FRB 生成 API 的薄封装。
 - `app` 层依赖配置 Provider，但不直接读取 JSON。
 
 ## 启动与配置初始化
@@ -150,8 +152,20 @@ M3 的原始边界是 600 / 840 / 1200 / 1600。`medium` 与 `expanded` 共用 r
 `app.dart` 直接遍历 `AppSection.values` 构建 `IndexedStack`，因此
 "页面列表与枚举顺序不一致" 这类错误在编译期就不可能发生，新增分区也会强制补上页面。
 
-**搜索不是分区**。首页头部已经带搜索框，再占一个导航位是冗余的；搜索改为 push
-`AppRoutes.search` 路由（自带 AppBar 与返回），首页头部是它的唯一入口。
+**搜索不是分区**。再占一个导航位是冗余的；搜索改为 push `AppRoutes.search`
+路由（自带 AppBar 与返回）。入口只有一个，但会随外壳移动：
+
+| 平台 | 搜索框位置 |
+| --- | --- |
+| 桌面（有自定义标题栏） | `CustomTitleBar` 中，居中于品牌与窗口控制之间 |
+| 其他 | 首页页头的 `HomeHeader` |
+
+两处用的是同一个 `SearchLauncherField`，`.dart` 里不重复定义第二个搜索控件。
+标题栏在宽度不足 620dp 时收起搜索框而不是压缩它，因为 200dp 宽的搜索框读起来
+是坏的；此时首页页头仍然可达。
+
+标题栏的左侧品牌区宽度跟随断点（面板 220 / rail 80 / 无），因此 "Muse" 字样
+永远对齐在侧边导航列上方，而不是各自独立定位。
 
 所有页面内容通过 `ConstrainedBox` 居中。**最大宽度按内容类型分两档**：
 
@@ -169,12 +183,38 @@ Floating Player Bar 始终位于 `Stack` 中，并使用
 `AppSizes.scrollBottomPadding = 150`，避免内容与操作按钮被遮挡。
 这两件事都由 `PageScaffold` 统一保证。
 
+### 外壳面与环境光晕
+
+窗口不是「一整块背景 + 内容」，而是三层：
+
+```text
+AmbientBackground        整窗的环境光晕（theme.ambient 的柔光斑）
+  └── CustomTitleBar     桌面端标题栏，直接坐在光晕上，自身不画不透明底色
+  └── _ShellSurface      内缩 AppSizes.shellMargin 的圆角面板，colorScheme.surface
+        └── 导航 + 页面内容 + 悬浮播放条
+```
+
+关键在于**外壳面板从窗口四边内缩**。光晕只在缝隙和标题栏那一带露出来，
+这正是它读作背景而不是边框的原因 —— 把 `shellMargin` 归零会同时失去整个背景处理。
+`_ShellSurface` 带 `Clip.antiAlias`，否则底部导航栏这类自带 surface 底色的子控件
+会把圆角切方。
+
+`AmbientBackground` 用「径向渐变淡出到透明」画柔光斑，而不是 `MaskFilter.blur`：
+观感相同，但省掉了每帧模糊的开销，而这块表面在拖动窗口边缘时会不断重绘。
+光斑位置是**固定的相对比例**，不随尺寸变化；否则窗口 resize 时背景会蠕动。
+
+### 导航列的分隔
+
+侧边导航与内容之间**没有分割线**。两者都透明、共用同一块外壳面板，
+结构由选中项的药丸高亮表达，而不是由一条竖线表达。
+面板本身也不再重复 logo —— 品牌位于标题栏，并对齐在这一列上方。
+
 ## 主题系统
 
 `AppTheme` 提供 `light(ThemePalette)` / `dark(ThemePalette)` 两套 `ThemeData`：
 
 - 明暗色板与底部玻璃参数定义在 `assets/config/app_config.json` 的 `theme` 段，
-  支持 `mode` / `light` / `dark` / `glass`。
+  支持 `mode` / `light` / `dark` / `glass` / `heroGradient` / `ambient`。
 - `ThemeConfig` / `ThemePalette` 负责解析十六进制颜色，见
   `lib/core/config/theme_config.dart`。
 - 色板字段名直接采用 M3 的 `md.sys.color.*` 角色名，避免一层翻译。
@@ -196,11 +236,35 @@ Floating Player Bar 始终位于 `Stack` 中，并使用
 把五级指向同一个色值，就等于失去了表达高度的唯一手段 —— 这也是为什么卡片
 只能一律 `elevation: 0`。
 
-### 装饰性渐变
+### 装饰性渐变与生成式图像
 
-首页 Hero 卡片是全应用唯一一块大面积装饰表面。它的色相跨度大、不对应任何单个 M3
-颜色角色，因此放在 `theme.heroGradient`（明暗各一组色标）里，而不是写死在 widget 中。
-解析是「全有或全无」的 —— 半解析的渐变既不是配置值也不是默认值，比直接回退更糟。
+应用有两块大面积装饰表面，都不对应任何单个 M3 颜色角色，因此都进配置而不是写死在
+widget 中，解析一律「全有或全无」—— 半解析的渐变既不是配置值也不是默认值，
+比直接回退更糟：
+
+| 配置 | 用途 |
+| --- | --- |
+| `theme.heroGradient` | 首页 Hero 的底衬渐变 |
+| `theme.ambient` | 外壳背后的环境光晕（光斑颜色，**不是**渐变 stops） |
+
+Hero 与所有封面的大图**不是位图资源**，而是 `GeneratedArtwork` 用 `CustomPainter`
+程序化画出来的场景。这样做让 Phase 1 完全离线可跑，也不需要处理素材授权。
+场景由封面 key 的稳定哈希选出：
+
+- 用 FNV-1a，**不用 `String.hashCode`** —— 后者在 Dart 中按进程随机化，
+  同一首歌每次启动都会换一张封面。
+- 乘法拆成两个 16 位半段：`hash * 0x01000193` 会到 ~2^56，超出 JS number 的
+  2^53 整数范围，不拆的话 Web 端哈希会静默地与原生端不同。
+- `GeneratedScene` 的**枚举顺序是设计的一部分**：它被调成让 6 首 mock 曲目各得
+  一种场景，且与设计稿逐张对应。改动顺序会重排全应用封面，所以
+  `test/generated_artwork_test.dart` 把这个映射钉住了。
+
+场景内部的特征尺寸（太阳半径、月亮、行星环等）一律按 `size.shortestSide` 缩放，
+**不能按宽度**。Hero 横幅约 4:1，按宽度缩放会把太阳画成比地平线还高的巨大圆盘。
+
+Hero 上的文字压在一层**恒定的深色遮罩**上，不直接用图片当背景：场景是生成的，
+颜色不可控，没有遮罩时某些「场景 × 主题」组合会让白色正文掉到 4.5:1 以下。
+遮罩约在 72% 宽度处完全透明，因此只有文字一侧被压暗。
 
 ### 形状令牌
 
@@ -230,9 +294,45 @@ Floating Player Bar 始终位于 `Stack` 中，并使用
 
 ## 后端接缝
 
-`core/network` 目录为未来 Rust 后端预留：
+Flutter 与 Rust **同进程**：客户端通过 `flutter_rust_bridge` 直接调用 Rust 引擎，
+不走 HTTP/WebSocket，因而没有 socket 与 JSON 序列化开销。`enableNetwork: true`
+（默认）时启用该路径；`cdylib` 无法加载时回退到本地 Mock 播放。
+
+REST/WebSocket 前端仍保留在同一 crate 里（供其他客户端使用），但 App 不再使用它。
+
+客户端侧：
 
 - `BackendConfig`：从 `app_config.json` 的 `backend` 段解析 base URL 与端点路径。
-- `RustApiClient`：空壳单例，Phase 1 不实现任何网络调用。
+- `RustPlayer`（`core/bridge/rust_player.dart`）：薄封装 FRB 生成的 API，把
+  `BridgeTrack` 投影成 `Song`。
+- `PlayerNotifier`：引擎可用时把指令转发给 Rust 并镜像 `subscribe()` 推送；
+  否则回退本地 Mock 播放。
 
-详细接口契约见 [backend-api.md](backend-api.md)。
+服务端侧（`rust/backend/`）：
+
+- 分层为 `config` / `library` / `player` / `cover` / `online` / `routes`，
+  `models.rs` 定义线上 JSON 形状。
+- 曲目领域类型直接复用 `muse_bridge::api::bridge_models::BridgeTrack`，避免 HTTP JSON
+  与 FRB 契约漂移。
+- 播放走 `rodio` 真实输出；`PlayerHub` 每 250ms **采样引擎位置**后推送，而不是自己
+  累加计时器，所以进度不会漂移。
+- `AudioEngine` trait 把"控制协议"与"声音输出"分开：无声卡时自动退化为虚拟时钟，
+  API 与协议语义不变。
+- `online`（`bpi-rs`）负责 B 站视频音轨：搜索结果注册到 `Library` 的在线叠加层，
+  播放前把 DASH 音轨下载成缓存文件。在线曲目只按 id 可解析，不进入本地目录、
+  歌单与本地搜索。`Library::track` / `file` 因此返回所有权值，避免调用方持有锁守卫。
+
+```text
+Flutter  core/bridge (RustPlayer)
+   │  flutter_rust_bridge 直接函数调用（进程内，无 socket / 无 JSON）
+   │  指令 ↓ / BridgePlayerSnapshot 推送 ↑
+   ▼
+muse_backend ── Library (walkdir + lofty) ── CoverCache (程序化 JPEG)
+                 │    └── 在线叠加层 (bpi-rs 命中 + 已缓存音轨)
+                 ├── OnlineService (bpi-rs: 搜索 / DASH 音轨解析 / 下载)
+                 └── PlayerHub (状态机 + broadcast) ── AudioEngine
+                                                       ├── RodioEngine (真实输出)
+                                                       └── ClockEngine (无声卡回退)
+```
+
+详细接口契约与实现说明见 [backend-api.md](backend-api.md)。

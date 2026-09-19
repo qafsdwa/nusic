@@ -22,6 +22,26 @@ abstract final class AppSizes {
   /// Collapsed Material navigation rail width for tablet layouts.
   static const double navigationRailWidth = 80;
 
+  /// Height of the custom desktop title bar.
+  ///
+  /// The title bar sits on the ambient wash rather than on the shell surface,
+  /// so this is also the band of wash visible above the app pane.
+  ///
+  /// Tall enough to hold [searchFieldHeight] with clearance; a shorter bar
+  /// forces the search field to be squeezed and its icon would clip.
+  static const double titleBarHeight = 52;
+
+  /// Gap between the window edge and the app shell surface.
+  ///
+  /// The ambient wash shows through this gap. It is what makes the shell read
+  /// as a floating pane instead of a full-bleed window, so collapsing it to 0
+  /// removes the entire background treatment.
+  static const double shellMargin = 10;
+
+  /// Corner radius of the app shell surface. On the M3 shape scale rather than
+  /// a one-off, unlike [floatingPlayerBarRadius].
+  static const double shellRadius = shapeLgIncreased;
+
   /// Material 3 [NavigationBar] default height.
   static const double navigationBarHeight = 80;
 

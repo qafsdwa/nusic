@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 
 import '../../app/breakpoints.dart';
 import '../../core/constants/app_sizes.dart';
+import '../../widgets/common/search_launcher.dart';
 
-/// Header row for Home: greeting + inline search field on desktop/tablet and
-/// a stacked search field on mobile.
+/// Header row for Home, used on the shells that have no title bar.
+///
+/// On desktop the search field lives in the custom title bar instead, so this
+/// header is only built for the mobile and tablet shells. It carries the greeting
+/// plus the same [SearchLauncherField] the title bar uses.
 class HomeHeader extends StatelessWidget {
   const HomeHeader({super.key, required this.onSearchTap});
 
@@ -29,7 +33,7 @@ class HomeHeader extends StatelessWidget {
             children: <Widget>[
               title,
               const SizedBox(height: AppSizes.spacingSm),
-              HomeSearchField(onTap: onSearchTap),
+              SearchLauncherField(onTap: onSearchTap),
             ],
           );
         }
@@ -39,7 +43,7 @@ class HomeHeader extends StatelessWidget {
             Expanded(child: title),
             SizedBox(
               width: AppSizes.searchFieldWidth,
-              child: HomeSearchField(onTap: onSearchTap),
+              child: SearchLauncherField(onTap: onSearchTap),
             ),
           ],
         );
@@ -55,29 +59,5 @@ class HomeHeader extends StatelessWidget {
       return '下午好，音乐旅人';
     }
     return '晚上好，音乐旅人';
-  }
-}
-
-/// Read-only home search field that jumps to the Search page.
-class HomeSearchField extends StatelessWidget {
-  const HomeSearchField({super.key, required this.onTap});
-
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: AppSizes.searchFieldHeight,
-      child: TextField(
-        onTap: onTap,
-        readOnly: true,
-        // No explicit fill: this field and the Search page's field must read as
-        // the same control, so both take `inputDecorationTheme`.
-        decoration: const InputDecoration(
-          hintText: '搜索歌曲、专辑、歌手或歌单',
-          prefixIcon: Icon(Icons.search),
-        ),
-      ),
-    );
   }
 }

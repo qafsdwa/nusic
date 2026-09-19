@@ -35,12 +35,21 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   flutter_riverpod: ^3.3.2
-  flutter_rust_bridge: ^2.13.0
   window_manager: ^0.3.9
+  # In-process bridge to the Rust engine (`rust/backend/`). No HTTP or
+  # WebSocket: calls cross `flutter_rust_bridge` directly.
+  flutter_rust_bridge: ^2.13.0
+  # flutter_rust_bridge generates `@freezed` Dart values for the FFI contract.
+  freezed_annotation: ^3.1.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
+  # Required by the flutter_rust_bridge generator: field-bearing enums are
+  # emitted as `@freezed` Dart types, which needs a build_runner pass.
+  freezed: ^3.2.6-dev.1
+  build_runner: ^2.15.1
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

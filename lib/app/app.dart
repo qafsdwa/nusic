@@ -13,6 +13,7 @@ import '../pages/playlist/playlist_page.dart';
 import '../pages/settings/settings_page.dart';
 import '../providers/navigation_provider.dart';
 import '../providers/theme_mode_provider.dart';
+import '../widgets/common/ambient_background.dart';
 import '../widgets/common/placeholder_page.dart';
 import '../widgets/common/responsive_layout.dart';
 import '../widgets/navigation/desktop_navigation.dart';
@@ -68,17 +69,68 @@ class MuseApp extends ConsumerWidget {
 ///
 /// Shell selection goes through [ResponsiveLayout] so the window size classes
 /// live in exactly one place (`AppBreakpoints`).
-class MainShell extends ConsumerWidget {
+class MainShell extends StatelessWidget {
   const MainShell({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Stack(
+        children: <Widget>[
+          // Decorative wash, behind everything including the title bar. The
+          // shell surface below is inset from the window edge, which is what
+          // lets the wash read as a background rather than as a border.
+          const Positioned.fill(child: AmbientBackground()),
+          Column(
+            children: <Widget>[
+              if (isDesktopPlatform) const CustomTitleBar(),
+              Expanded(
+                child: Padding(
+                  // A uniform inset on all four sides: the shell reads as one
+                  // pane floating on the wash regardless of which shell renders.
+                  padding: const EdgeInsets.all(AppSizes.shellMargin),
+                  child: const _ShellSurface(child: _ShellBody()),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Inset, rounded app surface that hosts the navigation and page content.
+class _ShellSurface extends StatelessWidget {
+  const _ShellSurface({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Theme.of(context).colorScheme.surface,
+      borderRadius: BorderRadius.circular(AppSizes.shellRadius),
+      // Clipped so the bottom navigation bar and any surface-coloured child
+      // cannot square off the rounded corners they sit inside.
+      clipBehavior: Clip.antiAlias,
+      child: child,
+    );
+  }
+}
+
+/// The responsive shell inside [_ShellSurface].
+///
+/// Split out so the surface wrapper can stay `const` and the shell can keep
+/// depending on Riverpod state.
+class _ShellBody extends ConsumerWidget {
+  const _ShellBody();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final int selectedIndex = ref.watch(navigationProvider);
     final NavigationNotifier navigation = ref.read(navigationProvider.notifier);
 
-    // Built by iterating [AppSection.values] so the page order can never drift
-    // out of sync with the navigation order — and so adding a section is a
-    // compile error until it has a page.
     final List<Widget> pages = <Widget>[
       for (final AppSection section in AppSection.values)
         switch (section) {
@@ -96,41 +148,32 @@ class MainShell extends ConsumerWidget {
 
     final Widget content = IndexedStack(index: selectedIndex, children: pages);
 
-    return Scaffold(
-      body: Column(
-        children: <Widget>[
-          if (isDesktopPlatform) const CustomTitleBar(),
-          Expanded(
-            child: SafeArea(
-              top: !isDesktopPlatform,
-              bottom: false,
-              child: ResponsiveLayout(
-                // `large` + `extra-large`: permanent navigation panel.
-                desktop: _SideNavigationShell(
-                  navigation: DesktopNavigationPanel(
-                    selectedIndex: selectedIndex,
-                    onDestinationSelected: navigation.select,
-                  ),
-                  content: content,
-                ),
-                // `medium` + `expanded`: navigation rail.
-                tablet: _SideNavigationShell(
-                  navigation: MuseNavigationRail(
-                    selectedIndex: selectedIndex,
-                    onDestinationSelected: navigation.select,
-                  ),
-                  content: content,
-                ),
-                // `compact`: bottom navigation.
-                mobile: _BottomNavigationShell(
-                  selectedIndex: selectedIndex,
-                  onDestinationSelected: navigation.select,
-                  content: content,
-                ),
-              ),
-            ),
+    return SafeArea(
+      top: !isDesktopPlatform,
+      bottom: false,
+      child: ResponsiveLayout(
+        // `large` + `extra-large`: permanent navigation panel.
+        desktop: _SideNavigationShell(
+          navigation: DesktopNavigationPanel(
+            selectedIndex: selectedIndex,
+            onDestinationSelected: navigation.select,
           ),
-        ],
+          content: content,
+        ),
+        // `medium` + `expanded`: navigation rail.
+        tablet: _SideNavigationShell(
+          navigation: MuseNavigationRail(
+            selectedIndex: selectedIndex,
+            onDestinationSelected: navigation.select,
+          ),
+          content: content,
+        ),
+        // `compact`: bottom navigation.
+        mobile: _BottomNavigationShell(
+          selectedIndex: selectedIndex,
+          onDestinationSelected: navigation.select,
+          content: content,
+        ),
       ),
     );
   }
@@ -139,6 +182,10 @@ class MainShell extends ConsumerWidget {
 /// Side navigation (panel or rail) with the floating player bar over the
 /// content. Shared by the desktop and tablet shells, which differ only in which
 /// navigation widget they render.
+///
+/// No divider between the navigation and the content: both are transparent over
+/// the same shell surface, so the pane reads as one piece with the navigation
+/// column mapped out by its selected pill rather than by a rule.
 class _SideNavigationShell extends StatelessWidget {
   const _SideNavigationShell({required this.navigation, required this.content});
 
@@ -153,11 +200,6 @@ class _SideNavigationShell extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             navigation,
-            VerticalDivider(
-              width: 1,
-              thickness: 1,
-              color: Theme.of(context).colorScheme.outlineVariant,
-            ),
             Expanded(child: content),
           ],
         ),
